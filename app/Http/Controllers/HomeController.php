@@ -1,11 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Sale;
+use App\Models\Sale;
 use Carbon\Carbon;
-use App\SoldProduct;
-use App\Transaction;
-use App\PaymentMethod;
+use App\Models\SoldProduct;
+use App\Models\Transaction;
+use App\Models\PaymentMethod;
 
 class HomeController extends Controller
 {
@@ -23,7 +23,7 @@ class HomeController extends Controller
         $anualsales = $this->getAnnualSales();
         $anualclients = $this->getAnnualClients();
         $anualproducts = $this->getAnnualProducts();
-        
+
         return view('dashboard', [
             'monthlybalance'            => $monthlyBalance,
             'monthlybalancebymethod'    => $monthlyBalanceByMethod,
@@ -82,11 +82,11 @@ class HomeController extends Controller
     public function getAnnualProducts()
     {
         $products = [];
-        foreach(range(1, 12) as $i) { 
+        foreach(range(1, 12) as $i) {
             $monthproducts = SoldProduct::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', $i)->sum('qty');
 
             array_push($products, $monthproducts);
-        }        
+        }
         return "[" . implode(',', $products) . "]";
     }
 

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Hash;
-use App\Http\Requests\ProfileRequest;
-use App\Http\Requests\PasswordRequest;
+use App\Models\Http\Requests\ProfileRequest;
+use App\Models\Http\Requests\PasswordRequest;
 
 class ProfileController extends Controller
 {

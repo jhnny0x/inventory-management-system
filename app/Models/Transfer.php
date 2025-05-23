@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,16 +12,16 @@ class Transfer extends Model
 
     public function transactions()
     {
-        return $this->hasMany('App\Transaction');
+        return $this->hasMany('App\Models\Transaction');
     }
 
     public function sender_method()
     {
-        return $this->belongsTo('App\PaymentMethod', 'sender_method_id');
+        return $this->belongsTo('App\Models\PaymentMethod', 'sender_method_id');
     }
 
     public function receiver_method()
     {
-        return $this->belongsTo('App\PaymentMethod', 'receiver_method_id');
+        return $this->belongsTo('App\Models\PaymentMethod', 'receiver_method_id');
     }
 }

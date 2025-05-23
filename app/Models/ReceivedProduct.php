@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,11 +12,11 @@ class ReceivedProduct extends Model
 
     public function receipt()
     {
-        return $this->belongsTo('App\Receipt');
+        return $this->belongsTo('App\Models\Receipt');
     }
 
     public function product()
     {
-        return $this->belongsTo('App\Product');
+        return $this->belongsTo('App\Models\Product');
     }
 }

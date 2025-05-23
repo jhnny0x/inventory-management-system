@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Product;
-use App\ProductCategory;
-use App\Http\Requests\ProductRequest;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\Http\Requests\ProductRequest;
 
 class ProductController extends Controller
 {

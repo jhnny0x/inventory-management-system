@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -15,6 +15,6 @@ class PaymentMethod extends Model
 
     public function transactions()
     {
-        return $this->hasMany('App\Transaction', 'payment_method_id', 'id');
+        return $this->hasMany('App\Models\Transaction', 'payment_method_id', 'id');
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,16 +14,16 @@ class Receipt extends Model
 
     public function provider()
     {
-        return $this->belongsTo('App\Provider');
+        return $this->belongsTo('App\Models\Provider');
     }
 
     public function user()
     {
-        return $this->belongsTo('App\User');
+        return $this->belongsTo('App\Models\User');
     }
 
     public function products()
     {
-        return $this->hasMany('App\ReceivedProduct');
+        return $this->hasMany('App\Models\ReceivedProduct');
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Provider;
-use App\Http\Requests\ProviderRequest;
+use App\Models\Provider;
+use App\Models\Http\Requests\ProviderRequest;
 
 class ProviderController extends Controller
 {

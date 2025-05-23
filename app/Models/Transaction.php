@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,27 +23,27 @@ class Transaction extends Model
 
     public function method()
     {
-        return $this->belongsTo('App\PaymentMethod', 'payment_method_id');
+        return $this->belongsTo('App\Models\PaymentMethod', 'payment_method_id');
     }
 
     public function provider()
     {
-        return $this->belongsTo('App\Provider');
+        return $this->belongsTo('App\Models\Provider');
     }
 
     public function sale()
     {
-        return $this->belongsTo('App\Sale');
+        return $this->belongsTo('App\Models\Sale');
     }
 
     public function client()
     {
-        return $this->belongsTo('App\Client');
+        return $this->belongsTo('App\Models\Client');
     }
 
     public function transfer()
     {
-        return $this->belongsTo('App\Transfer');
+        return $this->belongsTo('App\Models\Transfer');
     }
 
     public function scopeFindByPaymentMethodId($query, $id)
