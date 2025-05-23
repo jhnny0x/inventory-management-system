@@ -1,1 +1,1 @@
-## Laravel Inventory
+## Inventory Management System
