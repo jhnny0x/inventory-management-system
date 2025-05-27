@@ -2,20 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sale;
-use App\Models\Client;
-use App\Models\Transaction;
-use App\Models\PaymentMethod;
-use Illuminate\Http\Request;
 use App\Http\Requests\ClientRequest;
+use App\Repositories\Client\ClientRepositoryInterface as Client;
+use App\Repositories\PaymentMethod\PaymentMethodRepositoryInterface as PaymentMethod;
 
 class ClientController extends Controller
 {
+    function __construct(Client $client, PaymentMethod $payment_method)
+    {
+        $this->client = $client;
+        $this->payment_method = $payment_method;
+    }
+
     public function index()
     {
-        $clients = Client::paginate(25);
-
-        return view('clients.index', compact('clients'));
+        $data['clients'] = $this->client->paginate(25);
+        return view('clients.index', $data);
     }
 
     public function create()
@@ -23,45 +25,42 @@ class ClientController extends Controller
         return view('clients.create');
     }
 
-    public function store(ClientRequest $request, Client $client)
+    public function store(ClientRequest $request)
     {
-        $client->create($request->all());
-
+        $payload = $request->all();
+        $this->client->create($payload);
         return redirect()->route('clients.index')->withStatus('Successfully registered customer.');
     }
 
-    public function show(Client $client)
+    public function show(int $id)
     {
-        return view('clients.show', compact('client'));
+        $data['client'] = $this->client->find($id);
+        return view('clients.show', $data);
     }
 
-    public function edit(Client $client)
+    public function edit(int $id)
     {
-        return view('clients.edit', compact('client'));
+        $data['client'] = $this->client->find($id);
+        return view('clients.edit', $data);
     }
 
-    public function update(ClientRequest $request, Client $client)
+    public function update(ClientRequest $request, int $id)
     {
-        $client->update($request->all());
-
-        return redirect()
-            ->route('clients.index')
-            ->withStatus('Successfully modified customer.');
+        $payload = $request->all();
+        $this->client->update($id, $payload);
+        return redirect()->route('clients.index')->withStatus('Successfully modified customer.');
     }
 
-    public function destroy(Client $client)
+    public function destroy(int $id)
     {
-        $client->delete();
-
-        return redirect()
-            ->route('clients.index')
-            ->withStatus('Customer successfully removed.');
+        $this->client->delete($id);
+        return redirect()->route('clients.index')->withStatus('Customer successfully removed.');
     }
 
-    public function addTransaction(Client $client)
+    public function addTransaction(int $id)
     {
-        $payment_methods = PaymentMethod::all();
-
-        return view('clients.transactions.add', compact('client','payment_methods'));
+        $data['client'] = $this->client->find($id);
+        $data['payment_methods'] = $this->payment_method->all();
+        return view('clients.transactions.add', $data);
     }
 }
