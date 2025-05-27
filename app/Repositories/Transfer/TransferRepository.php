@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Repositories\Transfer;
+namespace App\Repositories\Transfer;
 
-use App\Http\Repositories\AbstractRepository;
-use App\Http\Repositories\Transfer\TransferRepositoryInterface;
+use App\Repositories\AbstractRepository;
+use App\Repositories\Transfer\TransferRepositoryInterface;
 
 class TransferRepository extends AbstractRepository implements TransferRepositoryInterface
 {

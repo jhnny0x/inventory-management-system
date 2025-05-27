@@ -1,5 +1,5 @@
 <?php
 
-namespace App\Http\Repositories\Client;
+namespace App\Repositories\Client;
 
 interface ClientRepositoryInterface {}

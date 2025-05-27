@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Repositories\ReceivedProduct;
+namespace App\Repositories\ReceivedProduct;
 
-use App\Http\Repositories\AbstractRepository;
-use App\Http\Repositories\ReceivedProduct\ReceivedProductRepositoryInterface;
+use App\Repositories\AbstractRepository;
+use App\Repositories\ReceivedProduct\ReceivedProductRepositoryInterface;
 
 class ReceivedProductRepository extends AbstractRepository implements ReceivedProductRepositoryInterface
 {

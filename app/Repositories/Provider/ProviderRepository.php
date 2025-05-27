@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Repositories\Provider;
+namespace App\Repositories\Provider;
 
-use App\Http\Repositories\AbstractRepository;
-use App\Http\Repositories\Provider\ProviderRepositoryInterface;
+use App\Repositories\AbstractRepository;
+use App\Repositories\Provider\ProviderRepositoryInterface;
 
 class ProviderRepository extends AbstractRepository implements ProviderRepositoryInterface
 {

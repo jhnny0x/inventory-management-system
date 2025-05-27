@@ -1,5 +1,5 @@
 <?php
 
-namespace App\Http\Repositories\Transfer;
+namespace App\Repositories\Transfer;
 
 interface TransferRepositoryInterface {}

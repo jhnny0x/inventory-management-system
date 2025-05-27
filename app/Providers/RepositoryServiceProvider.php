@@ -10,56 +10,56 @@ class RepositoryServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->app->bind(
-            \App\Http\Repositories\Client\ClientRepositoryInterface::class,
-            \App\Http\Repositories\Client\ClientRepository::class
+            \App\Repositories\Client\ClientRepositoryInterface::class,
+            \App\Repositories\Client\ClientRepository::class
         );
         $this->app->bind(
-            \App\Http\Repositories\PaymentMethod\PaymentMethodRepositoryInterface::class,
-            \App\Http\Repositories\PaymentMethod\PaymentMethodRepository::class
+            \App\Repositories\PaymentMethod\PaymentMethodRepositoryInterface::class,
+            \App\Repositories\PaymentMethod\PaymentMethodRepository::class
         );
         $this->app->bind(
-            \App\Http\Repositories\Product\ProductRepositoryInterface::class,
-            \App\Http\Repositories\Product\ProductRepository::class
+            \App\Repositories\Product\ProductRepositoryInterface::class,
+            \App\Repositories\Product\ProductRepository::class
         );
         $this->app->bind(
-            \App\Http\Repositories\ProductCategory\ProductCategoryRepositoryInterface::class,
-            \App\Http\Repositories\ProductCategory\ProductCategoryRepository::class
+            \App\Repositories\ProductCategory\ProductCategoryRepositoryInterface::class,
+            \App\Repositories\ProductCategory\ProductCategoryRepository::class
         );
         $this->app->bind(
-            \App\Http\Repositories\Provider\ProviderRepositoryInterface::class,
-            \App\Http\Repositories\Provider\ProviderRepository::class
+            \App\Repositories\Provider\ProviderRepositoryInterface::class,
+            \App\Repositories\Provider\ProviderRepository::class
         );
         $this->app->bind(
-            \App\Http\Repositories\Receipt\ReceiptRepositoryInterface::class,
-            \App\Http\Repositories\Receipt\ReceiptRepository::class
+            \App\Repositories\Receipt\ReceiptRepositoryInterface::class,
+            \App\Repositories\Receipt\ReceiptRepository::class
         );
         $this->app->bind(
-            \App\Http\Repositories\ReceivedProduct\ReceivedProductRepositoryInterface::class,
-            \App\Http\Repositories\ReceivedProduct\ReceivedProductRepository::class
+            \App\Repositories\ReceivedProduct\ReceivedProductRepositoryInterface::class,
+            \App\Repositories\ReceivedProduct\ReceivedProductRepository::class
         );
         $this->app->bind(
-            \App\Http\Repositories\Sale\SaleRepositoryInterface::class,
-            \App\Http\Repositories\Sale\SaleRepository::class
+            \App\Repositories\Sale\SaleRepositoryInterface::class,
+            \App\Repositories\Sale\SaleRepository::class
         );
         $this->app->bind(
-            \App\Http\Repositories\SoldProduct\SoldProductRepositoryInterface::class,
-            \App\Http\Repositories\SoldProduct\SoldProductRepository::class
+            \App\Repositories\SoldProduct\SoldProductRepositoryInterface::class,
+            \App\Repositories\SoldProduct\SoldProductRepository::class
         );
         $this->app->bind(
-            \App\Http\Repositories\Transaction\TransactionRepositoryInterface::class,
-            \App\Http\Repositories\Transaction\TransactionRepository::class
+            \App\Repositories\Transaction\TransactionRepositoryInterface::class,
+            \App\Repositories\Transaction\TransactionRepository::class
         );
         $this->app->bind(
-            \App\Http\Repositories\TransactionType\TransactionTypeRepositoryInterface::class,
-            \App\Http\Repositories\TransactionType\TransactionTypeRepository::class
+            \App\Repositories\TransactionType\TransactionTypeRepositoryInterface::class,
+            \App\Repositories\TransactionType\TransactionTypeRepository::class
         );
         $this->app->bind(
-            \App\Http\Repositories\Transfer\TransferRepositoryInterface::class,
-            \App\Http\Repositories\Transfer\TransferRepository::class
+            \App\Repositories\Transfer\TransferRepositoryInterface::class,
+            \App\Repositories\Transfer\TransferRepository::class
         );
         $this->app->bind(
-            \App\Http\Repositories\User\UserRepositoryInterface::class,
-            \App\Http\Repositories\User\UserRepository::class
+            \App\Repositories\User\UserRepositoryInterface::class,
+            \App\Repositories\User\UserRepository::class
         );
     }
 }

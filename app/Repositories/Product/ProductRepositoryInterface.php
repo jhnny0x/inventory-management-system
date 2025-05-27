@@ -1,5 +1,5 @@
 <?php
 
-namespace App\Http\Repositories\Product;
+namespace App\Repositories\Product;
 
 interface ProductRepositoryInterface {}

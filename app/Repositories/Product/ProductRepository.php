@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Repositories\Product;
+namespace App\Repositories\Product;
 
-use App\Http\Repositories\AbstractRepository;
-use App\Http\Repositories\Product\ProductRepositoryInterface;
+use App\Repositories\AbstractRepository;
+use App\Repositories\Product\ProductRepositoryInterface;
 
 class ProductRepository extends AbstractRepository implements ProductRepositoryInterface
 {

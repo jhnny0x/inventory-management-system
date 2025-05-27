@@ -1,5 +1,5 @@
 <?php
 
-namespace App\Http\Repositories\PaymentMethod;
+namespace App\Repositories\PaymentMethod;
 
 interface PaymentMethodRepositoryInterface {}

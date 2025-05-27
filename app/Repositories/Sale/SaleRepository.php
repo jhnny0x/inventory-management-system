@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Repositories\Sale;
+namespace App\Repositories\Sale;
 
-use App\Http\Repositories\AbstractRepository;
-use App\Http\Repositories\Sale\SaleRepositoryInterface;
+use App\Repositories\AbstractRepository;
+use App\Repositories\Sale\SaleRepositoryInterface;
 
 class SaleRepository extends AbstractRepository implements SaleRepositoryInterface
 {

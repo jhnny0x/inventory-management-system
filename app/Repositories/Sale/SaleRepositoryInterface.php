@@ -1,5 +1,5 @@
 <?php
 
-namespace App\Http\Repositories\Sale;
+namespace App\Repositories\Sale;
 
 interface SaleRepositoryInterface {}

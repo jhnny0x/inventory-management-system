@@ -55,7 +55,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::match(['put', 'patch'], 'password', ['as' => 'profile.password', 'uses' => 'ProfileController@password']);
     });
 
-    Route::get('clients/{client}/transactions/add', ['as' => 'clients.transactions.add-transaction', 'uses' => 'ClientController@addTransaction']);
+    Route::get('clients/{id}/transactions/add', ['as' => 'clients.transactions.add-transaction', 'uses' => 'ClientController@addTransaction']);
     Route::get('icons', ['as' => 'pages.icons', 'uses' => 'PageController@icons']);
     Route::get('notifications', ['as' => 'pages.notifications', 'uses' => 'PageController@notifications']);
     Route::get('tables', ['as' => 'pages.tables', 'uses' => 'PageController@tables']);

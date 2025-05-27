@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Repositories\TransactionType;
+namespace App\Repositories\TransactionType;
 
-use App\Http\Repositories\AbstractRepository;
-use App\Http\Repositories\TransactionType\TransactionTypeRepositoryInterface;
+use App\Repositories\AbstractRepository;
+use App\Repositories\TransactionType\TransactionTypeRepositoryInterface;
 
 class TransactionTypeRepository extends AbstractRepository implements TransactionTypeRepositoryInterface
 {

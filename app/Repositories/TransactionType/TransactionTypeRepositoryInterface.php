@@ -1,5 +1,5 @@
 <?php
 
-namespace App\Http\Repositories\TransactionType;
+namespace App\Repositories\TransactionType;
 
 interface TransactionTypeRepositoryInterface {}
