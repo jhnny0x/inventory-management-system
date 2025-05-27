@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class InventoryController extends Controller
 {
-    public function stats()
+    public function statistics()
     {
         return view('inventory.stats', [
             'categories' => ProductCategory::all(),

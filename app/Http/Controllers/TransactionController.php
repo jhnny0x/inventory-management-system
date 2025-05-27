@@ -32,7 +32,7 @@ class TransactionController extends Controller
         return view('transactions.index', compact('transactions', 'transactionname'));
     }
 
-    public function stats()
+    public function statistics()
     {
         Carbon::setWeekStartsAt(Carbon::SUNDAY);
         Carbon::setWeekEndsAt(Carbon::SATURDAY);

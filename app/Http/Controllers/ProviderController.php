@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Provider;
-use App\Models\Http\Requests\ProviderRequest;
+use App\Http\Requests\ProviderRequest;
 
 class ProviderController extends Controller
 {

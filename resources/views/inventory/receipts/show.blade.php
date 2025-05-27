@@ -79,7 +79,7 @@
                         </div>
                         @if (!$receipt->finalized_at)
                             <div class="col-4 text-right">
-                                <a href="{{ route('receipts.product.add', ['receipt' => $receipt]) }}" class="btn btn-sm btn-primary">Add</a>
+                                <a href="{{ route('receipts.product.add-product', ['receipt' => $receipt]) }}" class="btn btn-sm btn-primary">Add</a>
                             </div>
                         @endif
                     </div>
@@ -104,10 +104,10 @@
                                     <td>{{ $received_product->stock + $received_product->stock_defective }}</td>
                                     <td class="td-actions text-right">
                                         @if(!$receipt->finalized_at)
-                                            <a href="{{ route('receipts.product.edit', ['receipt' => $receipt, 'receivedproduct' => $received_product]) }}" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="Edit Pedido">
+                                            <a href="{{ route('receipts.product.edit-product', ['receipt' => $receipt, 'receivedproduct' => $received_product]) }}" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="Edit Pedido">
                                                 <i class="tim-icons icon-pencil"></i>
                                             </a>
-                                            <form action="{{ route('receipts.product.destroy', ['receipt' => $receipt, 'receivedproduct' => $received_product]) }}" method="post" class="d-inline">
+                                            <form action="{{ route('receipts.product.destroy-product', ['receipt' => $receipt, 'receivedproduct' => $received_product]) }}" method="post" class="d-inline">
                                                 @csrf
                                                 @method('delete')
                                                 <button type="button" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="Delete Pedido" onclick="confirm('Estás seguro que quieres eliminar este producto?') ? this.parentElement.submit() : ''">

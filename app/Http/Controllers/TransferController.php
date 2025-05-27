@@ -10,11 +10,6 @@ use Illuminate\Support\Facades\Auth;
 
 class TransferController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index(Transfer $transfer)
     {
         return view('transfers.index', [
@@ -22,11 +17,6 @@ class TransferController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
         return view('transfers.create', [
@@ -34,12 +24,6 @@ class TransferController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request, Transfer $transfer, Transaction $transaction)
     {
         $transfer = $transfer->create($request->all());
@@ -69,12 +53,6 @@ class TransferController extends Controller
             ->withStatus('Transaction registered successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(Transfer $transfer)
     {
         $transfer->delete();

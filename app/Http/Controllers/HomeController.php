@@ -9,12 +9,6 @@ use App\Models\PaymentMethod;
 
 class HomeController extends Controller
 {
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\View\View
-     */
-
     public function index()
     {
         $monthlyBalanceByMethod = $this->getMethodBalance()->get('monthlyBalanceByMethod');
@@ -40,7 +34,7 @@ class HomeController extends Controller
         ]);
     }
 
-    public function getMethodBalance()
+    private function getMethodBalance()
     {
         $methods = PaymentMethod::all();
         $monthlyBalanceByMethod = [];
@@ -54,7 +48,7 @@ class HomeController extends Controller
         return collect(compact('monthlyBalanceByMethod', 'monthlyBalance'));
     }
 
-    public function getAnnualSales()
+    private function getAnnualSales()
     {
         $sales = [];
         foreach(range(1, 12) as $i) {
@@ -65,7 +59,7 @@ class HomeController extends Controller
         return "[" . implode(',', $sales) . "]";
     }
 
-    public function getAnnualClients()
+    private function getAnnualClients()
     {
         $clients = [];
         foreach(range(1, 12) as $i) {
@@ -79,7 +73,7 @@ class HomeController extends Controller
         return "[" . implode(',', $clients) . "]";
     }
 
-    public function getAnnualProducts()
+    private function getAnnualProducts()
     {
         $products = [];
         foreach(range(1, 12) as $i) {
@@ -90,7 +84,7 @@ class HomeController extends Controller
         return "[" . implode(',', $products) . "]";
     }
 
-    public function getMonthlyTransactions()
+    private function getMonthlyTransactions()
     {
         $actualmonth = Carbon::now();
 

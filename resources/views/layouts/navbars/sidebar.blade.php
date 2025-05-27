@@ -17,7 +17,7 @@
                 <div class="collapse {{ $section == 'transactions' ? 'show' : '' }}" id="transactions">
                     <ul class="nav pl-4">
                         <li @if ($pageSlug == 'tstats') class="active " @endif>
-                            <a href="{{ route('transactions.stats')  }}">
+                            <a href="{{ route('transactions.statistics')  }}">
                                 <i class="tim-icons icon-chart-pie-36"></i>
                                 <p>Statistics</p>
                             </a>
@@ -72,7 +72,7 @@
                 <div class="collapse {{ $section == 'inventory' ? 'show' : '' }}" id="inventory">
                     <ul class="nav pl-4">
                         <li @if ($pageSlug == 'istats') class="active " @endif>
-                            <a href="{{ route('inventory.stats') }}">
+                            <a href="{{ route('inventories.statistics') }}">
                                 <i class="tim-icons icon-chart-pie-36"></i>
                                 <p>Statistics</p>
                             </a>

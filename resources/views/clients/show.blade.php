@@ -57,7 +57,7 @@
                             <h4 class="card-title">Latest Transactions</h4>
                         </div>
                         <div class="col-4 text-right">
-                            <a href="{{ route('clients.transactions.add', $client) }}" class="btn btn-sm btn-primary">New Transaction</a>
+                            <a href="{{ route('clients.transactions.add-transaction', $client) }}" class="btn btn-sm btn-primary">New Transaction</a>
                         </div>
                     </div>
                 </div>

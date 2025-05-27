@@ -87,7 +87,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <a href="{{ route('clients.transactions.add', $client) }}" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="Register Transation">
+                                            <a href="{{ route('clients.transactions.add-transaction', $client) }}" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="Register Transation">
                                                 <i class="tim-icons icon-simple-add"></i>
                                             </a>
                                             <a href="{{ route('clients.show', $client) }}" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="See Client">

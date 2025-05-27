@@ -3,22 +3,10 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
-
 Auth::routes();
 
-Route::get('/', 'HomeController@index')->name('home')->middleware('auth');
-
 Route::group(['middleware' => 'auth'], function () {
+    Route::get('/', ['as' => 'home', 'uses' => 'HomeController@index']);
 
     Route::resources([
         'users' => 'UserController',
@@ -29,38 +17,45 @@ Route::group(['middleware' => 'auth'], function () {
         'transactions/transfer' => 'TransferController',
         'methods' => 'MethodController',
     ]);
-    
-    Route::resource('transactions', 'TransactionController')->except(['create', 'show']);
-    Route::get('transactions/stats/{year?}/{month?}/{day?}', ['as' => 'transactions.stats', 'uses' => 'TransactionController@stats']);
-    Route::get('transactions/{type}', ['as' => 'transactions.type', 'uses' => 'TransactionController@type']);
-    Route::get('transactions/{type}/create', ['as' => 'transactions.create', 'uses' => 'TransactionController@create']);
-    Route::get('transactions/{transaction}/edit', ['as' => 'transactions.edit', 'uses' => 'TransactionController@edit']);
 
-    Route::get('inventory/stats/{year?}/{month?}/{day?}', ['as' => 'inventory.stats', 'uses' => 'InventoryController@stats']);
-    Route::resource('inventory/receipts', 'ReceiptController')->except(['edit', 'update']);
-    Route::get('inventory/receipts/{receipt}/finalize', ['as' => 'receipts.finalize', 'uses' => 'ReceiptController@finalize']);
-    Route::get('inventory/receipts/{receipt}/product/add', ['as' => 'receipts.product.add', 'uses' => 'ReceiptController@addproduct']);
-    Route::get('inventory/receipts/{receipt}/product/{receivedproduct}/edit', ['as' => 'receipts.product.edit', 'uses' => 'ReceiptController@editproduct']);
-    Route::post('inventory/receipts/{receipt}/product', ['as' => 'receipts.product.store', 'uses' => 'ReceiptController@storeproduct']);
-    Route::match(['put', 'patch'], 'inventory/receipts/{receipt}/product/{receivedproduct}', ['as' => 'receipts.product.update', 'uses' => 'ReceiptController@updateproduct']);
-    Route::delete('inventory/receipts/{receipt}/product/{receivedproduct}', ['as' => 'receipts.product.destroy', 'uses' => 'ReceiptController@destroyproduct']);
+    Route::resource('transactions', 'TransactionController')->except(['create', 'show']);
+    Route::group(['prefix' => 'transactions'], function () {
+        Route::get('statistics/{year?}/{month?}/{day?}', ['as' => 'transactions.statistics', 'uses' => 'TransactionController@statistics']);
+        Route::get('{type}', ['as' => 'transactions.type', 'uses' => 'TransactionController@type']);
+        Route::get('{type}/create', ['as' => 'transactions.create', 'uses' => 'TransactionController@create']);
+        Route::get('{transaction}/edit', ['as' => 'transactions.edit', 'uses' => 'TransactionController@edit']);
+    });
+
+    Route::group(['prefix' => 'inventories'], function () {
+        Route::get('statistics/{year?}/{month?}/{day?}', ['as' => 'inventories.statistics', 'uses' => 'InventoryController@statistics']);
+        Route::resource('receipts', 'ReceiptController')->except(['edit', 'update']);
+        Route::group(['prefix' => 'receipts/{receipt}'], function () {
+            Route::get('finalize', ['as' => 'receipts.finalize', 'uses' => 'ReceiptController@finalize']);
+            Route::get('product/add', ['as' => 'receipts.product.add-product', 'uses' => 'ReceiptController@addProduct']);
+            Route::get('product/{receivedproduct}/edit', ['as' => 'receipts.product.edit-product', 'uses' => 'ReceiptController@editProduct']);
+            Route::post('product', ['as' => 'receipts.product.store', 'uses' => 'ReceiptController@storeProduct']);
+            Route::match(['put', 'patch'], 'product/{receivedproduct}', ['as' => 'receipts.product.update-product', 'uses' => 'ReceiptController@updateProduct']);
+            Route::delete('product/{receivedproduct}', ['as' => 'receipts.product.destroy-product', 'uses' => 'ReceiptController@destroyProduct']);
+        });
+    });
 
     Route::resource('sales', 'SaleController')->except(['edit', 'update']);
-    Route::get('sales/{sale}/finalize', ['as' => 'sales.finalize', 'uses' => 'SaleController@finalize']);
-    Route::get('sales/{sale}/product/add', ['as' => 'sales.product.add', 'uses' => 'SaleController@addproduct']);
-    Route::get('sales/{sale}/product/{soldproduct}/edit', ['as' => 'sales.product.edit', 'uses' => 'SaleController@editproduct']);
-    Route::post('sales/{sale}/product', ['as' => 'sales.product.store', 'uses' => 'SaleController@storeproduct']);
-    Route::match(['put', 'patch'], 'sales/{sale}/product/{soldproduct}', ['as' => 'sales.product.update', 'uses' => 'SaleController@updateproduct']);
-    Route::delete('sales/{sale}/product/{soldproduct}', ['as' => 'sales.product.destroy', 'uses' => 'SaleController@destroyproduct']);
+    Route::group(['prefix' => 'sales/{sale}'], function () {
+        Route::get('finalize', ['as' => 'sales.finalize', 'uses' => 'SaleController@finalize']);
+        Route::get('product/add', ['as' => 'sales.product.add', 'uses' => 'SaleController@addProduct']);
+        Route::get('product/{soldproduct}/edit', ['as' => 'sales.product.edit', 'uses' => 'SaleController@editproduct']);
+        Route::post('product', ['as' => 'sales.product.store', 'uses' => 'SaleController@storeProduct']);
+        Route::match(['put', 'patch'], 'product/{soldproduct}', ['as' => 'sales.product.update', 'uses' => 'SaleController@updateProduct']);
+        Route::delete('product/{soldproduct}', ['as' => 'sales.product.destroy', 'uses' => 'SaleController@destroyProduct']);
+    });
 
-    Route::get('clients/{client}/transactions/add', ['as' => 'clients.transactions.add', 'uses' => 'ClientController@addtransaction']);
+    Route::group(['prefix' => 'profile'], function () {
+        Route::get('/', ['as' => 'profile.edit', 'uses' => 'ProfileController@edit']);
+        Route::match(['put', 'patch'], '/', ['as' => 'profile.update', 'uses' => 'ProfileController@update']);
+        Route::match(['put', 'patch'], 'password', ['as' => 'profile.password', 'uses' => 'ProfileController@password']);
+    });
 
-    Route::get('profile', ['as' => 'profile.edit', 'uses' => 'ProfileController@edit']);
-    Route::match(['put', 'patch'], 'profile', ['as' => 'profile.update', 'uses' => 'ProfileController@update']);
-    Route::match(['put', 'patch'], 'profile/password', ['as' => 'profile.password', 'uses' => 'ProfileController@password']);
-});
-
-Route::group(['middleware' => 'auth'], function () {
+    Route::get('clients/{client}/transactions/add', ['as' => 'clients.transactions.add-transaction', 'uses' => 'ClientController@addTransaction']);
     Route::get('icons', ['as' => 'pages.icons', 'uses' => 'PageController@icons']);
     Route::get('notifications', ['as' => 'pages.notifications', 'uses' => 'PageController@notifications']);
     Route::get('tables', ['as' => 'pages.tables', 'uses' => 'PageController@tables']);

@@ -108,14 +108,14 @@ class SaleController extends Controller
         return back()->withStatus('The sale has been successfully completed.');
     }
 
-    public function addproduct(Sale $sale)
+    public function addProduct(Sale $sale)
     {
         $products = Product::all();
 
         return view('sales.addproduct', compact('sale', 'products'));
     }
 
-    public function storeproduct(Request $request, Sale $sale, SoldProduct $soldProduct)
+    public function storeProduct(Request $request, Sale $sale, SoldProduct $soldProduct)
     {
         $request->merge(['total_amount' => $request->get('price') * $request->get('qty')]);
 
@@ -133,7 +133,7 @@ class SaleController extends Controller
         return view('sales.editproduct', compact('sale', 'soldproduct', 'products'));
     }
 
-    public function updateproduct(Request $request, Sale $sale, SoldProduct $soldproduct)
+    public function updateProduct(Request $request, Sale $sale, SoldProduct $soldproduct)
     {
         $request->merge(['total_amount' => $request->get('price') * $request->get('qty')]);
 
@@ -142,7 +142,7 @@ class SaleController extends Controller
         return redirect()->route('sales.show', $sale)->withStatus('Product successfully modified.');
     }
 
-    public function destroyproduct(Sale $sale, SoldProduct $soldproduct)
+    public function destroyProduct(Sale $sale, SoldProduct $soldproduct)
     {
         $soldproduct->delete();
 
