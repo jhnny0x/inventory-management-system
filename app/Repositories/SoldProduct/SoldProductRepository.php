@@ -40,10 +40,12 @@ class SoldProductRepository extends AbstractRepository implements SoldProductRep
         ])
             ->thisYear()
             ->groupBy('month')
-            ->orderBy('month')
-            ->pluck('total_quantities')
-            ->toArray();
+            ->get()
+            ->keyBy('month');
 
-        return $products;
+        $monthly_product_quantities = [];
+        foreach (MONTHS_IN_A_YEAR as $month)
+            $monthly_product_quantities[] = $products[$month]['total_quantities'] ?? 0;
+        return $monthly_product_quantities;
     }
 }
