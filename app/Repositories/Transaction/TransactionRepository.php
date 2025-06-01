@@ -41,7 +41,10 @@ class TransactionRepository extends AbstractRepository implements TransactionRep
             DB::raw('SUM(transactions.amount) as total_amount'),
             DB::raw('SUM(COALESCE(transactions.amount, 0)) as total_amount'),
         ])
-            ->rightJoin('payment_methods', 'payment_methods.id', '=', 'transactions.payment_method_id')
+            ->rightJoin('payment_methods', function ($join) {
+                $join->on('payment_methods.id', '=', 'transactions.payment_method_id')
+                    ->where(DB::raw('MONTH(transactions.created_at)'), Carbon::now()->month);
+            })
             ->groupBy('payment_method_name')
             ->get();
 
@@ -50,10 +53,7 @@ class TransactionRepository extends AbstractRepository implements TransactionRep
         };
 
         $monthly_balance_per_method = $transactions->pluck('total_amount', 'payment_method_name');
-        $entire_balance_this_month = $transactions->filter(function ($transaction) {
-            return Carbon::parse($transaction->created_at)->month == Carbon::now()->month;
-        })
-            ->reduce($calculate_balance, 0.0);
+        $entire_balance_this_month = $transactions->reduce($calculate_balance, 0.0);
 
         return [
             'entire_balance_this_month' => $entire_balance_this_month,

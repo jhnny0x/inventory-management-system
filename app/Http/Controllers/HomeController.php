@@ -27,6 +27,7 @@ class HomeController extends Controller
     public function index()
     {
         $data = $this->getDashboardData();
+        // return [$data['entire_balance_this_month'], $data['monthly_balance_per_method']];
         return view('dashboard', $data);
     }
 
