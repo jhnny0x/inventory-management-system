@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
 use Carbon\Carbon;
 
 class Transaction extends Model
@@ -46,13 +45,18 @@ class Transaction extends Model
         return $this->belongsTo('App\Models\Transfer');
     }
 
-    public function scopeFindByPaymentMethodId($query, $id)
+    public function scopeThisYear($query)
     {
-        return $query->where('payment_method_id', $id);
+        return $query->whereYear('created_at', Carbon::now()->year);
     }
 
-    public function scopeThisMonth($query)
+    public function scopeIncome($query)
     {
-        return $query->whereMonth('created_at', Carbon::now()->month);
+        return $query->where('type', 'income');
+    }
+
+    public function scopeExpense($query)
+    {
+        return $query->whereIn('type', ['expense', 'payment']);
     }
 }

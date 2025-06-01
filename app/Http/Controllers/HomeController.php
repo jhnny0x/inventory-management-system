@@ -1,124 +1,77 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Sale;
+
 use Carbon\Carbon;
-use App\Models\SoldProduct;
-use App\Models\Transaction;
-use App\Models\PaymentMethod;
+use App\Repositories\Sale\SaleRepositoryInterface as Sale;
+use App\Repositories\SoldProduct\SoldProductRepositoryInterface as SoldProduct;
+use App\Repositories\Transaction\TransactionRepositoryInterface as Transaction;
+use App\Repositories\PaymentMethod\PaymentMethodRepositoryInterface as PaymentMethod;
+use DB;
 
 class HomeController extends Controller
 {
+    private $sale;
+    private $sold_product;
+    private $transaction;
+    private $payment_method;
+
+    function __construct(Sale $sale, SoldProduct $sold_product, Transaction $transaction, PaymentMethod $payment_method)
+    {
+        $this->sale = $sale;
+        $this->sold_product = $sold_product;
+        $this->transaction = $transaction;
+        $this->payment_method = $payment_method;
+    }
+
     public function index()
     {
-        $monthlyBalanceByMethod = $this->getMethodBalance()->get('monthlyBalanceByMethod');
-        $monthlyBalance = $this->getMethodBalance()->get('monthlyBalance');
-
-        $anualsales = $this->getAnnualSales();
-        $anualclients = $this->getAnnualClients();
-        $anualproducts = $this->getAnnualProducts();
-
-        return view('dashboard', [
-            'monthlybalance'            => $monthlyBalance,
-            'monthlybalancebymethod'    => $monthlyBalanceByMethod,
-            'lasttransactions'          => Transaction::latest()->limit(20)->get(),
-            'unfinishedsales'           => Sale::where('finalized_at', null)->get(),
-            'anualsales'                => $anualsales,
-            'anualclients'              => $anualclients,
-            'anualproducts'             => $anualproducts,
-            'lastmonths'                => array_reverse($this->getMonthlyTransactions()->get('lastmonths')),
-            'lastincomes'               => $this->getMonthlyTransactions()->get('lastincomes'),
-            'lastexpenses'              => $this->getMonthlyTransactions()->get('lastexpenses'),
-            'semesterexpenses'          => $this->getMonthlyTransactions()->get('semesterexpenses'),
-            'semesterincomes'           => $this->getMonthlyTransactions()->get('semesterincomes')
-        ]);
+        $data = $this->getDashboardData();
+        return view('dashboard', $data);
     }
 
-    private function getMethodBalance()
+    private function getDashboardData()
     {
-        $methods = PaymentMethod::all();
-        $monthlyBalanceByMethod = [];
-        $monthlyBalance = 0;
+        [
+            'entire_balance_this_month' => $entire_balance_this_month,
+            'monthly_balance_per_method' => $monthly_balance_per_method
+        ]
+            = $this->transaction->getMethodBalance();
 
-        foreach ($methods as $method) {
-            $balance = Transaction::findByPaymentMethodId($method->id)->thisMonth()->sum('amount');
-            $monthlyBalance += (float) $balance;
-            $monthlyBalanceByMethod[$method->name] = $balance;
-        }
-        return collect(compact('monthlyBalanceByMethod', 'monthlyBalance'));
-    }
+        [
+            'latest_income' => $latest_income,
+            'latest_expenses' => $latest_expenses,
+            'previous_months' => $previous_months,
+            'semestral_income' => $semestral_income,
+            'semestral_expenses' => $semestral_expenses
+        ]
+            = $this->transaction->getMonthlyTransactions();
 
-    private function getAnnualSales()
-    {
-        $sales = [];
-        foreach(range(1, 12) as $i) {
-            $monthlySalesCount = Sale::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', $i)->count();
+        $latest_transactions = $this->transaction->latest()->limit(20)->get();
 
-            array_push($sales, $monthlySalesCount);
-        }
-        return "[" . implode(',', $sales) . "]";
-    }
 
-    private function getAnnualClients()
-    {
-        $clients = [];
-        foreach(range(1, 12) as $i) {
-            $monthclients = Sale::selectRaw('count(distinct client_id) as total')
-                ->whereYear('created_at', Carbon::now()->year)
-                ->whereMonth('created_at', $i)
-                ->first();
+        [
+            'number_of_sales' => $number_of_sales,
+            'number_of_clients' => $number_of_clients
+        ]
+            = $this->sale->getMonthlySalesCount();
 
-            array_push($clients, $monthclients->total);
-        }
-        return "[" . implode(',', $clients) . "]";
-    }
+        $unfinished_sales = $this->sale->whereNull('finalized_at')->get();
+        $monthly_product_quantities = $this->sold_product->getMonthlyProductQuantities();
 
-    private function getAnnualProducts()
-    {
-        $products = [];
-        foreach(range(1, 12) as $i) {
-            $monthproducts = SoldProduct::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', $i)->sum('qty');
-
-            array_push($products, $monthproducts);
-        }
-        return "[" . implode(',', $products) . "]";
-    }
-
-    private function getMonthlyTransactions()
-    {
-        $actualmonth = Carbon::now();
-
-        $lastmonths = [];
-        $lastincomes = '';
-        $lastexpenses = '';
-        $semesterincomes = 0;
-        $semesterexpenses = 0;
-
-        foreach (range(1, 6) as $i) {
-            array_push($lastmonths, $actualmonth->shortMonthName);
-
-            $incomes = Transaction::where('type', 'income')
-                ->whereYear('created_at', $actualmonth->year)
-                ->WhereMonth('created_at', $actualmonth->month)
-                ->sum('amount');
-
-            $semesterincomes += $incomes;
-            $lastincomes = round($incomes).','.$lastincomes;
-
-            $expenses = abs(Transaction::whereIn('type', ['expense', 'payment'])
-                ->whereYear('created_at', $actualmonth->year)
-                ->WhereMonth('created_at', $actualmonth->month)
-                ->sum('amount'));
-
-            $semesterexpenses += $expenses;
-            $lastexpenses = round($expenses).','.$lastexpenses;
-
-            $actualmonth->subMonth(1);
-        }
-
-        $lastincomes = '['.$lastincomes.']';
-        $lastexpenses = '['.$lastexpenses.']';
-
-        return collect(compact('lastmonths', 'lastincomes', 'lastexpenses', 'semesterincomes', 'semesterexpenses'));
+        return [
+            'entire_balance_this_month' => $entire_balance_this_month,
+            'monthly_balance_per_method'=> $monthly_balance_per_method,
+            'latest_transactions' => $latest_transactions,
+            'unfinished_sales' => $unfinished_sales,
+            'number_of_sales' => json_encode($number_of_sales, JSON_NUMERIC_CHECK),
+            'number_of_clients' => json_encode($number_of_clients, JSON_NUMERIC_CHECK),
+            'monthly_product_quantities' => json_encode($monthly_product_quantities, JSON_NUMERIC_CHECK),
+            'previous_months' => $previous_months,
+            'latest_income' => json_encode($latest_income, JSON_NUMERIC_CHECK),
+            'latest_expenses' => json_encode($latest_expenses, JSON_NUMERIC_CHECK),
+            'semestral_expenses' => $semestral_expenses,
+            'semestral_income' => $semestral_income
+        ];
     }
 }

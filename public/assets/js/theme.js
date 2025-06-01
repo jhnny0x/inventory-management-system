@@ -152,7 +152,7 @@ demo = {
         gradientStroke.addColorStop(0, 'rgba(119,52,169,0)'); //purple colors
 
         var data = {
-            labels: lastmonths,
+            labels: previous_months,
             datasets: [{
                 label: "Total",
                 fill: true,
@@ -168,7 +168,7 @@ demo = {
                 pointHoverRadius: 4,
                 pointHoverBorderWidth: 15,
                 pointRadius: 4,
-                data: lastincomes,
+                data: latest_income,
             }]
         };
 
@@ -187,7 +187,7 @@ demo = {
         gradientStroke.addColorStop(0, 'rgba(66,134,121,0)'); //green colors
 
         var data = {
-            labels: lastmonths,
+            labels: previous_months,
             datasets: [{
                 label: "Total",
                 fill: true,
@@ -203,7 +203,7 @@ demo = {
                 pointHoverRadius: 4,
                 pointHoverBorderWidth: 15,
                 pointRadius: 4,
-                data: lastexpenses,
+                data: latest_expenses,
             }]
         };
 
@@ -241,22 +241,22 @@ demo = {
                     pointHoverRadius: 4,
                     pointHoverBorderWidth: 15,
                     pointRadius: 4,
-                    data: anualproducts,
+                    data: monthly_product_quantities,
                 }]
             },
             options: gradientChartOptionsConfigurationWithTooltipPurple
         };
-        
+
         var myChartData = new Chart(ctx, config);
         $("#0").click(function () {
-            var chart_data = anualproducts;
+            var chart_data = monthly_product_quantities;
             var data = myChartData.config.data;
             data.datasets[0].data = chart_data;
             data.labels = chart_labels;
             myChartData.update();
         });
         $("#1").click(function () {
-            var chart_data = anualsales;
+            var chart_data = number_of_sales;
             var data = myChartData.config.data;
             data.datasets[0].data = chart_data;
             data.labels = chart_labels;
@@ -264,7 +264,7 @@ demo = {
         });
 
         $("#2").click(function () {
-            var chart_data = anualclients;
+            var chart_data = number_of_clients;
             var data = myChartData.config.data;
             data.datasets[0].data = chart_data;
             data.labels = chart_labels;

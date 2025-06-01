@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class SoldProduct extends Model
 {
@@ -21,5 +22,10 @@ class SoldProduct extends Model
     public function sale()
     {
         return $this->belongsTo('App\Models\Sale');
+    }
+
+    public function scopeThisYear($query)
+    {
+        return $query->whereYear('created_at', Carbon::now()->year);
     }
 }

@@ -29,7 +29,7 @@ abstract class AbstractRepository
         return $this->model->where($column, $operator, $value);
     }
 
-    public function whereFunc($callback)
+    public function whereCallback($callback)
     {
         return $this->model->where($callback);
     }
@@ -37,6 +37,11 @@ abstract class AbstractRepository
     public function whereIn($column, $value = [])
     {
         return $this->model->whereIn($column, $value);
+    }
+
+    public function whereNull($column)
+    {
+        return $this->model->whereNull($column);
     }
 
     public function pluck($name = 'name', $id = '')
@@ -52,6 +57,11 @@ abstract class AbstractRepository
     public function paginate()
     {
         return $this->model->paginate();
+    }
+
+    public function latest()
+    {
+        return $this->model->latest();
     }
 
     public function getAjaxResponse($type, $message)

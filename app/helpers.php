@@ -1,5 +1,8 @@
 <?php
 
+const MONTHS_IN_HALF_YEAR = [1, 2, 3, 4, 5, 6];
+const MONTHS_IN_A_YEAR = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
 function format_money($money)
 {
     if (!$money) {

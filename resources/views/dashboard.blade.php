@@ -51,7 +51,7 @@
             <div class="card card-chart">
                 <div class="card-header">
                     <h5 class="card-category">Last Month Income</h5>
-                    <h3 class="card-title"><i class="tim-icons icon-money-coins text-primary"></i>{{ format_money($semesterincomes) }}</h3>
+                    <h3 class="card-title"><i class="tim-icons icon-money-coins text-primary"></i>{{ format_money($semestral_income) }}</h3>
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
@@ -64,7 +64,7 @@
             <div class="card card-chart">
                 <div class="card-header">
                     <h5 class="card-category">Monthly Balance</h5>
-                    <h3 class="card-title"><i class="tim-icons icon-bank text-info"></i> {{ format_money($monthlybalance) }}</h3>
+                    <h3 class="card-title"><i class="tim-icons icon-bank text-info"></i> {{ format_money($entire_balance_this_month) }}</h3>
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
@@ -77,7 +77,7 @@
             <div class="card card-chart">
                 <div class="card-header">
                     <h5 class="card-category">Expenditures Last Month</h5>
-                    <h3 class="card-title"><i class="tim-icons icon-paper text-success"></i> {{ format_money($semesterexpenses) }}</h3>
+                    <h3 class="card-title"><i class="tim-icons icon-paper text-success"></i> {{ format_money($semestral_expenses) }}</h3>
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
@@ -127,7 +127,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($unfinishedsales as $sale)
+                                @foreach ($unfinished_sales as $sale)
                                     <tr>
                                         <td>{{ date('d-m-y', strtotime($sale->created_at)) }}</td>
                                         <td><a href="">{{ $sale->client->name }}<br>{{ $sale->client->document_type }}-{{ $sale->client->document_id }}</a></td>
@@ -184,9 +184,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-
-                                @foreach($lasttransactions as $transaction)
-                                    <tr> 
+                                @foreach($latest_transactions as $transaction)
+                                    <tr>
                                         <td>
                                             @if($transaction->type == 'expense')
                                                 Expense
@@ -199,7 +198,7 @@
                                             @else
                                                 {{ $transaction->type }}
                                             @endif
-                                            
+
                                         </td>
                                         <td>{{ $transaction->title }}</td>
                                         <td>{{ $transaction->method->name }}</td>
@@ -246,23 +245,23 @@
 
 @push('js')
     <script src="{{ asset('assets/js/plugins/chartjs.min.js') }}"></script>
-    
-    <script>
-        var lastmonths = [];
 
-        @foreach ($lastmonths as $id => $month)
-            lastmonths.push('{{ strtoupper($month) }}')
+    <script>
+        var previous_months = [];
+
+        @foreach ($previous_months as $id => $month)
+            previous_months.push('{{ strtoupper($month) }}')
         @endforeach
 
-        var lastincomes = {{ $lastincomes }};
-        var lastexpenses = {{ $lastexpenses }};
-        var anualsales = {{ $anualsales }};
-        var anualclients = {{ $anualclients }};
-        var anualproducts = {{ $anualproducts }};
+        var latest_income = {{ $latest_income }};
+        var latest_expenses = {{ $latest_expenses }};
+        var number_of_sales = {{ $number_of_sales }};
+        var number_of_clients = {{ $number_of_clients }};
+        var monthly_product_quantities = {{ $monthly_product_quantities }};
         var methods = [];
         var methods_stats = [];
 
-        @foreach($monthlybalancebymethod as $method => $balance)
+        @foreach($monthly_balance_per_method as $method => $balance)
             methods.push('{{ $method }}');
             methods_stats.push('{{ $balance }}');
         @endforeach
