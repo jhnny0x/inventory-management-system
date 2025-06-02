@@ -2,108 +2,70 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\ProductCategory;
 use App\Http\Requests\ProductRequest;
+use App\Repositories\Product\ProductRepositoryInterface as Product;
+use App\Repositories\ProductCategory\ProductCategoryRepositoryInterface as ProductCategory;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    private $product;
+    private $product_category;
+
+    function __construct(Product $product, ProductCategory $product_category)
+    {
+        $this->product_category = $product_category;
+        $this->product = $product;
+    }
+
     public function index()
     {
-        $products = Product::paginate(25);
-
-        return view('inventory.products.index', compact('products'));
+        $data['products'] = $this->product->paginate(25);
+        return view('inventory.products.index', $data);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
-        $categories = ProductCategory::all();
-
-        return view('inventory.products.create', compact('categories'));
+        $data['categories'] = $this->product_category->all();
+        return view('inventory.products.create', $data);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  App\Http\Requests\ProductRequest  $request
-     * @param  App\Product  $model
-     * @return \Illuminate\Http\Response
-     */
     public function store(ProductRequest $request, Product $model)
     {
-        $model->create($request->all());
+        $input = $request->all();
+        $this->product->create($input);
 
-        return redirect()
-            ->route('products.index')
-            ->withStatus('Product successfully registered.');
+        return redirect()->route('products.index')->withStatus('Product successfully registered.');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Product $product)
+    public function show(int $id)
     {
-        $solds = $product->solds()->latest()->limit(25)->get();
+        $product = $this->product->find($id);
 
-        $receiveds = $product->receiveds()->latest()->limit(25)->get();
+        $data['solds'] = $product->solds()->latest()->limit(25)->get();
+        $data['receiveds'] = $product->receiveds()->latest()->limit(25)->get();
 
-        return view('inventory.products.show', compact('product', 'solds', 'receiveds'));
+        return view('inventory.products.show', $data);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Product $product)
+    public function edit(int $id)
     {
-        $categories = ProductCategory::all();
+        $data['product'] = $this->product->find($id);
+        $data['categories'] = $this->product_category->all();
 
-        return view('inventory.products.edit', compact('product', 'categories'));
+        return view('inventory.products.edit', $data);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function update(ProductRequest $request, Product $product)
+    public function update(ProductRequest $request, int $id)
     {
-        $product->update($request->all());
+        $input = $request->all();
+        $this->product->update($id, $input);
 
-        return redirect()
-            ->route('products.index')
-            ->withStatus('Product updated successfully.');
+        return redirect()->route('products.index')->withStatus('Product updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Product $product)
+    public function destroy(int $id)
     {
-        $product->delete();
-
-        return redirect()
-            ->route('products.index')
-            ->withStatus('Product removed successfully.');
+        $this->product->delete($id);
+        return redirect()->route('products.index')->withStatus('Product removed successfully.');
     }
 }
