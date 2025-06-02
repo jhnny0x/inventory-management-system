@@ -20,13 +20,13 @@
                             <th></th>
                         </thead>
                         <tbody>
-                            @foreach($soldproductsbystock as $soldproduct)
+                            @foreach($sold_products_by_stock as $soldproduct)
                                 <tr>
                                     <td><a href="{{ route('products.show', $soldproduct->product) }}">{{ $soldproduct->product_id }}</a></td>
                                     <td><a href="{{ route('categories.show', $soldproduct->product->category) }}">{{ $soldproduct->product->category->name }}</a></td>
                                     <td>{{ $soldproduct->product->name }}</td>
                                     <td>{{ $soldproduct->product->stock }}</td>
-                                    <td>{{ $soldproduct->total_qty }}</td>
+                                    <td>{{ $soldproduct->total_quantities }}</td>
                                     <td>{{ format_money(round($soldproduct->avg_price, 2)) }}</td>
                                     <td>{{ format_money($soldproduct->incomes) }}</td>
                                     <td class="td-actions text-right">
@@ -59,12 +59,12 @@
                                 <th>Income</th>
                             </thead>
                             <tbody>
-                                @foreach ($soldproductsbyincomes as $soldproduct)
+                                @foreach ($sold_products_by_incomes as $soldproduct)
                                     <tr>
                                         <td>{{ $soldproduct->product_id }}</td>
                                         <td><a href="{{ route('categories.show', $soldproduct->product->category) }}">{{ $soldproduct->product->category->name }}</a></td>
                                         <td><a href="{{ route('products.show', $soldproduct->product) }}">{{ $soldproduct->product->name }}</a></td>
-                                        <td>{{ $soldproduct->total_qty }}</td>
+                                        <td>{{ $soldproduct->total_quantities }}</td>
                                         <td>{{ format_money($soldproduct->incomes) }}</td>
                                     </tr>
                                 @endforeach
@@ -90,12 +90,12 @@
                                 <th>Average Price</th>
                             </thead>
                             <tbody>
-                                @foreach ($soldproductsbyavgprice as $soldproduct)
+                                @foreach ($sold_products_by_average_price as $soldproduct)
                                     <tr>
                                         <td>{{ $soldproduct->product_id }}</td>
                                         <td><a href="{{ route('categories.show', $soldproduct->product->category) }}">{{ $soldproduct->product->category->name }}</a></td>
                                         <td><a href="{{ route('products.show', $soldproduct->product) }}">{{ $soldproduct->product->name }}</a></td>
-                                        <td>{{ $soldproduct->total_qty }}</td>
+                                        <td>{{ $soldproduct->total_quantities }}</td>
                                         <td>{{ format_money(round($soldproduct->avg_price, 2)) }}</td>
                                     </tr>
                                 @endforeach

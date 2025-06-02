@@ -55,8 +55,7 @@ class SoldProductRepository extends AbstractRepository implements SoldProductRep
     {
         $sold_products = $this->model->select([
             'product_id',
-            DB::raw('MAX(created_at)'),
-            DB::raw('SUM(qty) as total_qty'),
+            DB::raw('SUM(qty) as total_quantities'),
             DB::raw('SUM(total_amount) as incomes'),
             DB::raw('AVG(price) as avg_price')
         ])
