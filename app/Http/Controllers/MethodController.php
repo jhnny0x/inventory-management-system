@@ -3,18 +3,28 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
-use App\Models\Transaction;
-use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
+
+use App\Repositories\PaymentMethod\PaymentMethodRepositoryInterface as PaymentMethod;
+use App\Repositories\Transaction\TransactionRepositoryInterface as Transaction;
 
 class MethodController extends Controller
 {
+    private $payment_method;
+    private $transaction;
+
+    function __construct(PaymentMethod $payment_method, Transaction $transaction)
+    {
+        $this->payment_method = $payment_method;
+        $this->transaction = $transaction;
+    }
+
     public function index()
     {
-        return view('methods.index', [
-            'methods' => PaymentMethod::paginate(15),
-            'month' => Carbon::now()->month
-        ]);
+        $data['methods'] = $this->payment_method->paginate(15);
+        $data['month'] = Carbon::now()->month;
+
+        return view('methods.index', $data);
     }
 
     public function create()
@@ -22,61 +32,43 @@ class MethodController extends Controller
         return view('methods.create');
     }
 
-    public function store(Request $request, PaymentMethod $method)
+    public function store(Request $request)
     {
-        $method->create($request->all());
+        $input = $request->all();
+        $this->payment_method->create($input);
 
-        return redirect()
-            ->route('methods.index')
-            ->withStatus('Payment method successfully created.');
+        return redirect()->route('methods.index')->withStatus('Payment method successfully created.');
     }
 
-    public function show(PaymentMethod $method)
+    public function show(int $id)
     {
-        Carbon::setWeekStartsAt(Carbon::SUNDAY);
-        Carbon::setWeekEndsAt(Carbon::SATURDAY);
+        $transaction_names = get_transaction_names();
+        $transaction_balance = $this->transaction->getTransactionBalance();
 
-        $transactionname = [
-            'income' => 'Income',
-            'payment' => 'Payment',
-            'expense' => 'Expense',
-            'transfer' => 'Transfer'
-        ];
+        $data['method'] = $payment_method = $this->payment_method->find($id);
+        $data['balances'] = $transaction_balance();
+        $data['transactions'] = $this->transaction->where('payment_method_id', $payment_method->id)->latest()->paginate(25);
+        $data['transactionname'] = $transaction_names;
 
-        $balances = [
-            'daily' => Transaction::whereBetween('created_at', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->sum('amount'),
-            'weekly' => Transaction::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('amount'),
-            'quarter' => Transaction::whereBetween('created_at', [Carbon::now()->startOfQuarter(), Carbon::now()->endOfQuarter()])->sum('amount'),
-            'monthly' => Transaction::whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->sum('amount'),
-            'annual' => Transaction::whereBetween('created_at', [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()])->sum('amount'),
-        ];
-
-        return view('methods.show', [
-            'method' => $method,
-            'transactions' => Transaction::where('payment_method_id', $method->id)->latest()->paginate(25),
-            'balances' => $balances,
-            'transactionname' => $transactionname
-        ]);
+        return view('methods.show', $data);
     }
 
-    public function edit(PaymentMethod $method)
+    public function edit($id)
     {
-        return view('methods.edit', compact('method'));
+        $data['method'] = $this->payment_method->find($id);
+        return view('methods.edit', $data);
     }
 
-    public function update(Request $request, PaymentMethod $method)
+    public function update(Request $request, int $id)
     {
-        $method->update($request->all());
-
-        return redirect()
-            ->route('methods.index')
-            ->withStatus('Payment method updated satisfactorily.');
+        $input = $request->all();
+        $this->payment_method->update($id, $input);
+        return redirect()->route('methods.index')->withStatus('Payment method updated satisfactorily.');
     }
 
-    public function destroy(PaymentMethod $method)
+    public function destroy(int $id)
     {
-        $method->delete();
-
+        $this->payment_method->delete($id);
         return back()->withStatus('Payment method successfully removed.');
     }
 }

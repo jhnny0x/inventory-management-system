@@ -110,4 +110,36 @@ class TransactionRepository extends AbstractRepository implements TransactionRep
             'previous_months' => array_reverse($previous_months),
         ];
     }
+
+    public function getTransactionBalance()
+    {
+        Carbon::setWeekStartsAt(Carbon::SUNDAY);
+        Carbon::setWeekEndsAt(Carbon::SATURDAY);
+
+        $transaction_amount = $this->model->select(['created_at', 'amount'])->get();
+        $current_date = Carbon::now();
+
+        $callback = function ($date_range) {
+            [ $start_date, $end_date ] = $date_range;
+            $start_date = Carbon::parse($start_date);
+            $end_date = Carbon::parse($end_date);
+
+            return function ($transaction) use ($start_date, $end_date) {
+                $created_at = Carbon::parse($transaction->created_at);
+                return $created_at->gte($start_date) && $created_at->lte($end_date);
+            };
+        };
+
+        $transaction_balance = [
+            'daily' => $transaction_amount->filter($callback(get_date_range('daily')))->sum('amount'),
+            'weekly' => $transaction_amount->filter($callback(get_date_range('weekly')))->sum('amount'),
+            'quarter' => $transaction_amount->filter($callback(get_date_range('quarterly')))->sum('amount'),
+            'monthly' => $transaction_amount->filter($callback(get_date_range('monthly')))->sum('amount'),
+            'annual' => $transaction_amount->filter($callback(get_date_range('annually')))->sum('amount'),
+        ];
+
+        return function ($period = 'all') use ($transaction_balance) {
+            return $period == 'all' ? $transaction_balance : ($transaction_balance[$period] ?? []);
+        };
+    }
 }

@@ -3,7 +3,6 @@
 namespace App\Repositories\PaymentMethod;
 
 use App\Repositories\AbstractRepository;
-use App\Repositories\PaymentMethod\PaymentMethodRepositoryInterface;
 use App\Models\PaymentMethod;
 
 class PaymentMethodRepository extends AbstractRepository implements PaymentMethodRepositoryInterface
@@ -15,19 +14,19 @@ class PaymentMethodRepository extends AbstractRepository implements PaymentMetho
 
     public function create(array $request)
     {
-        $client = $this->model->create($request);
-        return $client;
+        $payment_method = $this->model->create($request);
+        return $payment_method;
     }
 
     public function update(int $id, array $request)
     {
-        $client = $this->findById($id);
-        $client->update($request);
+        $payment_method = $this->findById($id);
+        $payment_method->update($request);
     }
 
     public function delete(int $id)
     {
-        $client = $this->findById($id);
-        $client->delete();
+        $payment_method = $this->findById($id);
+        $payment_method->delete();
     }
 }

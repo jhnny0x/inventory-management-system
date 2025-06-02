@@ -44,6 +44,11 @@ abstract class AbstractRepository
         return $this->model->whereNull($column);
     }
 
+    public function whereBetween($column, $start, $end)
+    {
+        return $this->model->whereBetween($column, [$start, $end]);
+    }
+
     public function pluck($name = 'name', $id = '')
     {
         return $id ? $this->model->pluck($name, $id) : $this->model->pluck($name);
