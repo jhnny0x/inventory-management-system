@@ -9,6 +9,8 @@ use DB;
 
 class SoldProductRepository extends AbstractRepository implements SoldProductRepositoryInterface
 {
+    protected $model;
+
     function __construct(SoldProduct $model)
     {
         $this->model = $model;
@@ -47,5 +49,27 @@ class SoldProductRepository extends AbstractRepository implements SoldProductRep
         foreach (MONTHS_IN_A_YEAR as $month)
             $monthly_product_quantities[] = $products[$month]['total_quantities'] ?? 0;
         return $monthly_product_quantities;
+    }
+
+    public function getSoldProducts()
+    {
+        $sold_products = $this->model->select([
+            'product_id',
+            DB::raw('MAX(created_at)'),
+            DB::raw('SUM(qty) as total_qty'),
+            DB::raw('SUM(total_amount) as incomes'),
+            DB::raw('AVG(price) as avg_price')
+        ])
+            ->thisYear();
+
+        return function (int $limit = 0) use ($sold_products) {
+            if ($limit)
+                $sold_products = $sold_products->limit($limit);
+            return function (string $order_by, string $order_dir = 'asc') use ($sold_products) {
+                return $sold_products->groupBy('product_id')
+                    ->orderBy($order_by, $order_dir)
+                    ->get();
+            };
+        };
     }
 }
