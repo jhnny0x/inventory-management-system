@@ -20,7 +20,7 @@ function format_money($money)
     return "\$$money";
 }
 
-function get_date_range(string $period)
+function get_date_range(string $period): array
 {
     Carbon::setWeekStartsAt(Carbon::SUNDAY);
     Carbon::setWeekEndsAt(Carbon::SATURDAY);
@@ -43,7 +43,7 @@ function get_date_range(string $period)
     return $date_range;
 }
 
-function get_transaction_names()
+function get_transaction_names(): array
 {
     return [
         'income' => 'Income',

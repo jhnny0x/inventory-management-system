@@ -113,13 +113,8 @@ class TransactionRepository extends AbstractRepository implements TransactionRep
 
     public function getTransactionBalance()
     {
-        Carbon::setWeekStartsAt(Carbon::SUNDAY);
-        Carbon::setWeekEndsAt(Carbon::SATURDAY);
-
         $transaction_amount = $this->model->select(['created_at', 'amount'])->get();
-        $current_date = Carbon::now();
-
-        $callback = function ($date_range) {
+        $callback = function (array $date_range) {
             [ $start_date, $end_date ] = $date_range;
             $start_date = Carbon::parse($start_date);
             $end_date = Carbon::parse($end_date);

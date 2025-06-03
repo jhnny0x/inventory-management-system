@@ -2,105 +2,61 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Provider;
+use App\Repositories\Provider\ProviderRepositoryInterface as Provider;
 use App\Http\Requests\ProviderRequest;
 
 class ProviderController extends Controller
 {
-    /**
-     * Display a listing of the Provs
-     *
-     * @param  \App\Provider  $model
-     * @return \Illuminate\View\View
-     */
-    public function index(Provider $model)
+    function __construct(Provider $provider)
     {
-        $providers = Provider::paginate(25);
-
-        return view('providers.index', compact('providers'));
+        $this->provider = $provider;
     }
 
-    /**
-     * Show the form for creating a new Prov
-     *
-     * @return \Illuminate\View\View
-     */
+    public function index()
+    {
+        $data['providers'] = $this->provider->paginate(25);
+        return view('providers.index', $data);
+    }
+
     public function create()
     {
         return view('providers.create');
     }
 
-    /**
-     * Store a newly created Provider in storage
-     *
-     * @param  \App\Http\Requests\ProviderRequest  $request
-     * @param  \App\Provider  $model
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store(ProviderRequest $request, Provider $provider)
+    public function store(ProviderRequest $request)
     {
-        $provider->create($request->all());
+        $input = $request->all();
+        $this->provider->create($input);
 
-        return redirect()
-            ->route('providers.index')
-            ->withStatus('Successfully Registered Vendor.');
+        return redirect()->route('providers.index')->withStatus('Successfully Registered Vendor.');
     }
 
-    /**
-     * Show the form for editing the specified Provider
-     *
-     * @param  \App\Provider  $provider
-     * @return \Illuminate\View\View
-     */
-    public function edit(Provider $provider)
+    public function edit(int $id)
     {
-        return view('providers.edit', compact('provider'));
+        $data['provider'] = $this->provider->find($id);
+        return view('providers.edit', $data);
     }
 
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Provider $provider)
+    public function show(int $id)
     {
-        $transactions = $provider->transactions()->latest()->limit(25)->get();
+        $data['provider'] = $provider = $this->provider->find($id);
+        $data['transactions'] = $provider->transactions()->latest()->limit(25)->get();
+        $data['receipts'] = $provider->receipts()->latest()->limit(25)->get();
 
-        $receipts = $provider->receipts()->latest()->limit(25)->get();
-
-        return view('providers.show', compact('provider', 'transactions', 'receipts'));
+        return view('providers.show', $data);
     }
 
-    /**
-     * Update the specified Provider in storage
-     *
-     * @param  \App\Http\Requests\ProviderRequest  $request
-     * @param  \App\Provider  $Provider
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(ProviderRequest $request, Provider $provider)
+    public function update(ProviderRequest $request, int $id)
     {
-        $provider->update($request->all());
+        $input = $request->all();
+        $this->provider->update($id, $input);
 
-        return redirect()
-            ->route('providers.index')
-            ->withStatus('Provider updated successfully.');
+        return redirect()->route('providers.index')->withStatus('Provider updated successfully.');
     }
 
-    /**
-     * Remove the specified Provider from storage
-     *
-     * @param  \App\Provider  $provider
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function destroy(Provider $provider)
+    public function destroy(int $id)
     {
-        $provider->delete();
-
-        return redirect()
-            ->route('providers.index')
-            ->withStatus('Provider removed successfully.');
+        $this->provider->delete($id);
+        return redirect()->route('providers.index')->withStatus('Provider removed successfully.');
     }
 }
