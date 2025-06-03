@@ -29,7 +29,7 @@ class ProductController extends Controller
         return view('inventory.products.create', $data);
     }
 
-    public function store(ProductRequest $request, Product $model)
+    public function store(ProductRequest $request)
     {
         $input = $request->all();
         $this->product->create($input);
@@ -39,8 +39,7 @@ class ProductController extends Controller
 
     public function show(int $id)
     {
-        $product = $this->product->find($id);
-
+        $data['product'] = $product = $this->product->find($id);
         $data['solds'] = $product->solds()->latest()->limit(25)->get();
         $data['receiveds'] = $product->receiveds()->latest()->limit(25)->get();
 

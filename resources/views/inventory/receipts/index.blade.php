@@ -33,8 +33,8 @@
                                     <td>{{ date('d-m-y', strtotime($receipt->created_at)) }}</td>
                                     <td style="max-width:150px">{{ $receipt->title }}</td>
                                     <td>
-                                        @if($receipt->provider_id)
-                                            <a href="{{ route('providers.show', $receipt->provider) }}">{{ $receipt->provider->name }}</a>
+                                        @if ($receipt->provider)
+                                            <a href="{{ route('providers.show', $receipt->provider_id) }}">{{ $receipt->provider->name }}</a>
                                         @else
                                             N/A
                                         @endif
@@ -51,15 +51,15 @@
                                     </td>
                                     <td class="td-actions text-right">
                                         @if($receipt->finalized_at)
-                                            <a href="{{ route('receipts.show', ['receipt' => $receipt]) }}" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="Ver Receipt">
+                                            <a href="{{ route('receipts.show', ['receipt' => $receipt->id]) }}" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="Ver Receipt">
                                                 <i class="tim-icons icon-zoom-split"></i>
                                             </a>
                                         @else
-                                            <a href="{{ route('receipts.show', ['receipt' => $receipt]) }}" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="Edit Receipt">
+                                            <a href="{{ route('receipts.show', ['receipt' => $receipt->id]) }}" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="Edit Receipt">
                                                 <i class="tim-icons icon-pencil"></i>
                                             </a>
                                         @endif
-                                        <form action="{{ route('receipts.destroy', $receipt) }}" method="post" class="d-inline">
+                                        <form action="{{ route('receipts.destroy', $receipt->id) }}" method="post" class="d-inline">
                                             @csrf
                                             @method('delete')
                                             <button type="button" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="Delete Receipt" onclick="confirm('Estás seguro que quieres eliminar este recibo? Todos sus registros serán eliminados permanentemente, si ya está finalizado el stock de los productos permanecerán.') ? this.parentElement.submit() : ''">

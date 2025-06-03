@@ -15,7 +15,7 @@
                         @if (!$receipt->finalized_at)
                             <div class="col-4 text-right">
                                 @if ($receipt->products->count() === 0)
-                                    <form action="{{ route('receipts.destroy', $receipt) }}" method="post" class="d-inline">
+                                    <form action="{{ route('receipts.destroy', $receipt->id) }}" method="post" class="d-inline">
                                         @csrf
                                         @method('delete')
                                         <button type="submit" class="btn btn-sm btn-primary">
@@ -49,10 +49,10 @@
                                 <td>{{ $receipt->id }}</td>
                                 <td>{{ date('d-m-y', strtotime($receipt->created_at)) }}</td>
                                 <td style="max-width:150px;">{{ $receipt->title }}</td>
-                                <td>{{ $receipt->user->name }}</td>
+                                <td>{{ $receipt->user->name ?? 'N/A' }}</td>
                                 <td>
-                                    @if($receipt->provider_id)
-                                        <a href="{{ route('providers.show', $receipt->provider) }}">{{ $receipt->provider->name }}</a>
+                                    @if($receipt->provider)
+                                        <a href="{{ route('providers.show', $receipt->provider_id) }}">{{ $receipt->provider->name }}</a>
                                     @else
                                         N/A
                                     @endif

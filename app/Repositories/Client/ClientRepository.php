@@ -3,11 +3,12 @@
 namespace App\Repositories\Client;
 
 use App\Repositories\AbstractRepository;
-use App\Repositories\Client\ClientRepositoryInterface;
 use App\Models\Client;
 
 class ClientRepository extends AbstractRepository implements ClientRepositoryInterface
 {
+    protected $model;
+
     function __construct(Client $model)
     {
         $this->model = $model;
