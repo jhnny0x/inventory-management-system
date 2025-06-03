@@ -8,6 +8,9 @@ use App\Repositories\PaymentMethod\PaymentMethodRepositoryInterface as PaymentMe
 
 class ClientController extends Controller
 {
+    private $client;
+    private $payment_method;
+
     function __construct(Client $client, PaymentMethod $payment_method)
     {
         $this->client = $client;
@@ -16,7 +19,7 @@ class ClientController extends Controller
 
     public function index()
     {
-        $data['clients'] = $this->client->paginate(25);
+        $data['clients'] = $this->client->paginate();
         return view('clients.index', $data);
     }
 

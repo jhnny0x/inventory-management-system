@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transfer extends Model
 {
+    protected $table = 'transfers';
     protected $fillable = [
         'title', 'sended_amount', 'received_amount', 'sender_method_id', 'receiver_method_id', 'reference'
     ];

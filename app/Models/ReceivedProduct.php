@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReceivedProduct extends Model
 {
+    protected $table = 'received_products';
     protected $fillable = [
         'receipt_id', 'product_id', 'stock', 'stock_defective'
     ];

@@ -7,6 +7,8 @@ use App\Http\Requests\ProviderRequest;
 
 class ProviderController extends Controller
 {
+    private $provider;
+
     function __construct(Provider $provider)
     {
         $this->provider = $provider;
@@ -27,7 +29,6 @@ class ProviderController extends Controller
     {
         $input = $request->all();
         $this->provider->create($input);
-
         return redirect()->route('providers.index')->withStatus('Successfully Registered Vendor.');
     }
 

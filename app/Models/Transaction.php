@@ -7,6 +7,7 @@ use Carbon\Carbon;
 
 class Transaction extends Model
 {
+    protected $table = 'transactions';
     protected $fillable = [
         'title',
         'reference',

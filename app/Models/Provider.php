@@ -9,6 +9,7 @@ class Provider extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'providers';
     protected $fillable = [
         'name',
         'description',

@@ -59,9 +59,9 @@ abstract class AbstractRepository
         return $this->model->with($eagers);
     }
 
-    public function paginate()
+    public function paginate($limit = 25)
     {
-        return $this->model->paginate();
+        return $this->model->paginate($limit);
     }
 
     public function latest()

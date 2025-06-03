@@ -9,6 +9,7 @@ class PaymentMethod extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'payment_methods';
     protected $fillable = [
         'name',
         'description'

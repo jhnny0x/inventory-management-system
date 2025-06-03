@@ -7,6 +7,7 @@ use Carbon\Carbon;
 
 class Sale extends Model
 {
+    protected $table = 'sales';
     protected $fillable = [
         'client_id',
         'user_id'

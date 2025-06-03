@@ -5,10 +5,13 @@ namespace App\Repositories\Sale;
 use App\Repositories\AbstractRepository;
 use App\Repositories\Sale\SaleRepositoryInterface;
 use App\Models\Sale;
+use Carbon\Carbon;
 use DB;
 
 class SaleRepository extends AbstractRepository implements SaleRepositoryInterface
 {
+    protected $model;
+
     function __construct(Sale $model)
     {
         $this->model = $model;
@@ -55,5 +58,31 @@ class SaleRepository extends AbstractRepository implements SaleRepositoryInterfa
             'number_of_sales' => $number_of_sales,
             'number_of_clients' => $number_of_clients
         ];
+    }
+
+    public function finalize(int $id): array
+    {
+        $sale = $this->findById($id);
+        $sale->total_amount = $sale->products->sum('total_amount');
+
+        foreach ($sale->products as $sold_product) {
+            $product_name = $sold_product->product->name;
+            $product_stock = $sold_product->product->stock;
+            if ($sold_product->qty > $product_stock) {
+                return [ $product_name, $product_stock ];
+            }
+        }
+
+        foreach ($sale->products as $sold_product) {
+            $sold_product->product->stock -= $sold_product->qty;
+            $sold_product->product->save();
+        }
+
+        $sale->finalized_at = Carbon::now()->toDateTimeString();
+        $sale->client->balance -= $sale->total_amount;
+        $sale->save();
+        $sale->client->save();
+
+        return [];
     }
 }

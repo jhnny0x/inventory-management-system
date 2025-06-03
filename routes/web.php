@@ -43,7 +43,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::group(['prefix' => 'sales/{sale}'], function () {
         Route::get('finalize', ['as' => 'sales.finalize', 'uses' => 'SaleController@finalize']);
         Route::get('product/add', ['as' => 'sales.product.add', 'uses' => 'SaleController@addProduct']);
-        Route::get('product/{soldproduct}/edit', ['as' => 'sales.product.edit', 'uses' => 'SaleController@editproduct']);
+        Route::get('product/{soldproduct}/edit', ['as' => 'sales.product.edit', 'uses' => 'SaleController@editProduct']);
         Route::post('product', ['as' => 'sales.product.store', 'uses' => 'SaleController@storeProduct']);
         Route::match(['put', 'patch'], 'product/{soldproduct}', ['as' => 'sales.product.update', 'uses' => 'SaleController@updateProduct']);
         Route::delete('product/{soldproduct}', ['as' => 'sales.product.destroy', 'uses' => 'SaleController@destroyProduct']);

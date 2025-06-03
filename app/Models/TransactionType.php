@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TransactionType extends Model
 {
+    protected $table = 'transaction_types';
     protected $fillable = ['type', 'description'];
 
     public function transactions()

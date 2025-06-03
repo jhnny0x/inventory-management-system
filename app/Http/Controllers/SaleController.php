@@ -2,216 +2,136 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Client;
-use App\Models\Sale;
-use App\Models\Product;
-use Carbon\Carbon;
-use App\Models\SoldProduct;
-use App\Models\Transaction;
-use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
+use DB;
+
+use App\Repositories\Client\ClientRepositoryInterface as Client;
+use App\Repositories\Sale\SaleRepositoryInterface as Sale;
+use App\Repositories\Product\ProductRepositoryInterface as Product;
+use App\Repositories\SoldProduct\SoldProductRepositoryInterface as SoldProduct;
+use App\Repositories\Transaction\TransactionRepositoryInterface as Transaction;
+use App\Repositories\PaymentMethod\PaymentMethodRepositoryInterface as PaymentMethod;
 
 class SaleController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    private $client;
+    private $sale;
+    private $product;
+    private $sold_product;
+    private $transaction;
+    private $payment_method;
+
+    function __construct(Client $client, Sale $sale, Product $product, SoldProduct $sold_product, Transaction $transaction, PaymentMethod $payment_method)
+    {
+        $this->client = $client;
+        $this->sale = $sale;
+        $this->product = $product;
+        $this->sold_product = $sold_product;
+        $this->transaction = $transaction;
+        $this->payment_method = $payment_method;
+    }
+
     public function index()
     {
-        $sales = Sale::latest()->paginate(25);
+        $data['sales'] = $this->sale->select([
+                'sales.*',
+                'clients.name as client_name',
+                'clients.document_id as client_document_id',
+                'clients.document_type as client_document_type',
+                'clients.deleted_at as client_deleted_at',
+            ])
+            ->leftJoin('clients', 'clients.id', '=', 'sales.client_id')
+            ->latest()
+            ->paginate(25);
 
-        return view('sales.index', compact('sales'));
-
+        return view('sales.index', $data);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
-        $clients = Client::all();
-
-        return view('sales.create', compact('clients'));
+        $data['clients'] = $this->client->all();
+        return view('sales.create', $data);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request, Sale $model)
+    public function store(Request $request)
     {
-        $existent = Sale::where('client_id', $request->get('client_id'))->where('finalized_at', null)->get();
+        ['client_id' => $client_id] = $input = $request->all();
+        $sale = $this->sale->where('client_id', $client_id)
+            ->whereNull('finalized_at')
+            ->get();
 
-        if($existent->count()) {
-            return back()->withError('There is already an unfinished sale belonging to this customer. <a href="'.route('sales.show', $existent->first()).'">Click here to go to it</a>');
+        if ($sale->count()) {
+            return back()->withError('There is already an unfinished sale belonging to this customer. <a href="'.route('sales.show', ['sale' => $sale->first()->id]).'">Click here to go to it</a>');
         }
 
-        $sale = $model->create($request->all());
-
-        return redirect()
-            ->route('sales.show', ['sale' => $sale->id])
-            ->withStatus('Sale registered successfully, you can start registering products and transactions.');
+        $sale = $this->sale->create($input);
+        return redirect()->route('sales.show', ['sale' => $sale->id])->withStatus('Sale registered successfully, you can start registering products and transactions.');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Sale $sale)
+    public function show(int $id)
     {
-        return view('sales.show', ['sale' => $sale]);
+        $data['sale'] = $this->sale->with(['client'])->find($id);
+        return view('sales.show', $data);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Sale $sale)
+    public function destroy(int $id)
     {
-        $sale->delete();
-
-        return redirect()
-            ->route('sales.index')
-            ->withStatus('The sale record has been successfully deleted.');
+        $this->sale->delete($id);
+        return redirect()->route('sales.index')->withStatus('The sale record has been successfully deleted.');
     }
 
-    public function finalize(Sale $sale)
+    public function finalize(int $id)
     {
-        $sale->total_amount = $sale->products->sum('total_amount');
-
-        foreach ($sale->products as $sold_product) {
-            $product_name = $sold_product->product->name;
-            $product_stock = $sold_product->product->stock;
-            if($sold_product->qty > $product_stock) return back()->withError("The product '$product_name' does not have enough stock. Only has $product_stock units.");
+        $response = $this->sale->finalize($id);
+        if (count($response)) {
+            [ $product_name, $product_stock ] = $response;
+            return back()->withError("The product '$product_name' does not have enough stock. Only has $product_stock units.");
         }
-
-        foreach ($sale->products as $sold_product) {
-            $sold_product->product->stock -= $sold_product->qty;
-            $sold_product->product->save();
-        }
-
-        $sale->finalized_at = Carbon::now()->toDateTimeString();
-        $sale->client->balance -= $sale->total_amount;
-        $sale->save();
-        $sale->client->save();
 
         return back()->withStatus('The sale has been successfully completed.');
     }
 
-    public function addProduct(Sale $sale)
+    public function addProduct(int $id)
     {
-        $products = Product::all();
+        $data['sale'] = $this->sale->find($id);
+        $data['products'] = $this->product->all();
 
-        return view('sales.addproduct', compact('sale', 'products'));
+        return view('sales.addproduct', $data);
     }
 
-    public function storeProduct(Request $request, Sale $sale, SoldProduct $soldProduct)
+    public function storeProduct(Request $request, int $id)
     {
-        $request->merge(['total_amount' => $request->get('price') * $request->get('qty')]);
+        ['price' => $price, 'qty' => $quantity] = $input = $request->all();
+        $input['total_amount'] = $price * $quantity;
+        $sale = $this->sale->find($id);
+        $this->sold_product->create($input);
 
-        $soldProduct->create($request->all());
-
-        return redirect()
-            ->route('sales.show', ['sale' => $sale])
-            ->withStatus('Product successfully registered.');
+        return redirect()->route('sales.show', ['sale' => $sale->id])->withStatus('Product successfully registered.');
     }
 
-    public function editproduct(Sale $sale, SoldProduct $soldproduct)
+    public function editProduct(int $sale_id, int $sold_product_id)
     {
-        $products = Product::all();
+        $data['products'] = $this->product->all();
+        $data['sale'] = $this->sale->find($sale_id);
+        $data['soldproduct'] = $this->sale->find($sold_product_id);
 
-        return view('sales.editproduct', compact('sale', 'soldproduct', 'products'));
+        return view('sales.editproduct', $data);
     }
 
-    public function updateProduct(Request $request, Sale $sale, SoldProduct $soldproduct)
+    public function updateProduct(Request $request, int $sale_id, int $sold_product_id)
     {
-        $request->merge(['total_amount' => $request->get('price') * $request->get('qty')]);
+        ['price' => $price, 'qty' => $quantity] = $input = $request->all();
 
-        $soldproduct->update($request->all());
+        $input['total_amount'] = $price * $quantity;
+        $this->sold_product->update($sold_product_id, $input);
 
-        return redirect()->route('sales.show', $sale)->withStatus('Product successfully modified.');
+        return redirect()->route('sales.show', ['sale' => $sale_id])->withStatus('Product successfully modified.');
     }
 
-    public function destroyProduct(Sale $sale, SoldProduct $soldproduct)
+    public function destroyProduct(int $id)
     {
-        $soldproduct->delete();
-
+        $this->sold_product->delete($id);
         return back()->withStatus('The product has been disposed of successfully.');
-    }
-
-    public function addtransaction(Sale $sale)
-    {
-        $payment_methods = PaymentMethod::all();
-
-        return view('sales.addtransaction', compact('sale', 'payment_methods'));
-    }
-
-    public function storetransaction(Request $request, Sale $sale, Transaction $transaction)
-    {
-        switch($request->all()['type']) {
-            case 'income':
-                $request->merge(['title' => 'Payment Received from Sale ID: ' . $request->get('sale_id')]);
-                break;
-
-            case 'expense':
-                $request->merge(['title' => 'Sale Return Payment ID: ' . $request->all('sale_id')]);
-
-                if($request->get('amount') > 0) {
-                    $request->merge(['amount' => (float) $request->get('amount') * (-1) ]);
-                }
-                break;
-        }
-
-        $transaction->create($request->all());
-
-        return redirect()
-            ->route('sales.show', compact('sale'))
-            ->withStatus('Successfully registered transaction.');
-    }
-
-    public function edittransaction(Sale $sale, Transaction $transaction)
-    {
-        $payment_methods = PaymentMethod::all();
-
-        return view('sales.edittransaction', compact('sale', 'transaction', 'payment_methods'));
-    }
-
-    public function updatetransaction(Request $request, Sale $sale, Transaction $transaction)
-    {
-        switch($request->get('type')) {
-            case 'income':
-                $request->merge(['title' => 'Payment Received from Sale ID: '. $request->get('sale_id')]);
-                break;
-
-            case 'expense':
-                $request->merge(['title' => 'Sale Return Payment ID: '. $request->get('sale_id')]);
-
-                if($request->get('amount') > 0) {
-                    $request->merge(['amount' => (float) $request->get('amount') * (-1)]);
-                }
-                break;
-        }
-        $transaction->update($request->all());
-
-        return redirect()
-            ->route('sales.show', compact('sale'))
-            ->withStatus('Successfully modified transaction.');
-    }
-
-    public function destroytransaction(Sale $sale, Transaction $transaction)
-    {
-        $transaction->delete();
-
-        return back()->withStatus('Transaction deleted successfully.');
     }
 }
