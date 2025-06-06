@@ -2,50 +2,56 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Transfer;
-use App\Models\Transaction;
-use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Repositories\Transfer\TransferRepository as Transfer;
+use App\Repositories\Transaction\TransactionRepository as Transaction;
+use App\Repositories\PaymentMethod\PaymentMethodRepository as PaymentMethod;
 
 class TransferController extends Controller
 {
+    function __construct(Transfer $transfer, PaymentMethod $payment_method, Transaction $transaction)
+    {
+        $this->transfer = $transfer;
+        $this->payment_method = $payment_method;
+        $this->transaction = $transaction;
+    }
+
     public function index(Transfer $transfer)
     {
-        return view('transfers.index', [
-            'transfers' => Transfer::latest()->paginate(25)
-        ]);
+        $data['transfers'] = $this->transfer->latest()->paginate(25);
+        return view('transfers.index', $data);
     }
 
     public function create()
     {
-        return view('transfers.create', [
-            'methods' => PaymentMethod::all()
-        ]);
+        $data['methods'] = $this->payment_method->all();
+        return view('transfers.create', $data);
     }
 
-    public function store(Request $request, Transfer $transfer, Transaction $transaction)
+    public function store(Request $request)
     {
-        $transfer = $transfer->create($request->all());
+        $input = $request->all();
+        $transfer = $this->transfer->create($input);
 
-        $transaction->create([
-            "type" => "expense",
-            "title" => "TransferID: ".$transfer->id,
-            "transfer_id" => $transfer->id,
-            "payment_method_id" => $transfer->sender_method_id,
-            "amount" => ((float) abs($transfer->sended_amount) * (-1)),
-            "user_id" => Auth::id(),
-            "reference" => $transfer->reference
+        $this->transaction->create([
+            'type' => 'expense',
+            'title' => "TransferID: {$transfer->id}",
+            'transfer_id' => $transfer->id,
+            'payment_method_id' => $transfer->sender_method_id,
+            'amount' => ((float) abs($transfer->sended_amount) * (-1)),
+            'user_id' => Auth::id(),
+            'reference' => $transfer->reference
         ]);
 
-        $transaction->create([
-            "type" => "income",
-            "title" => "TransferID: ".$transfer->id,
-            "transfer_id" => $transfer->id,
-            "payment_method_id" => $transfer->receiver_method_id,
-            "amount" => abs($transfer->received_amount),
-            "user_id" => Auth::id(),
-            "reference" => $transfer->reference
+        $this->transaction->create([
+            'type' => "income",
+            'title' => "TransferID: {$transfer->id}",
+            'transfer_id' => $transfer->id,
+            'payment_method_id' => $transfer->receiver_method_id,
+            'amount' => abs($transfer->received_amount),
+            'user_id' => Auth::id(),
+            'reference' => $transfer->reference
         ]);
 
         return redirect()
@@ -53,11 +59,9 @@ class TransferController extends Controller
             ->withStatus('Transaction registered successfully.');
     }
 
-    public function destroy(Transfer $transfer)
+    public function destroy(int $id)
     {
-        $transfer->delete();
-
-        return back()
-            ->withStatus('The transfer and its associated transactions have been successfully removed.');
+        $this->transfer->delete($id);
+        return back()->withStatus('The transfer and its associated transactions have been successfully removed.');
     }
 }

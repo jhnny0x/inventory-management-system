@@ -11,7 +11,6 @@ class UserController extends Controller
     public function index(User $model)
     {
         $users = User::paginate(25);
-
         return view('users.index', compact('users'));
     }
 
@@ -23,9 +22,7 @@ class UserController extends Controller
     public function store(UserRequest $request)
     {
         $request->merge(['password' => Hash::make($request->get('password'))]);
-
         User::create($request->all());
-
         return redirect()->route('users.index')->withStatus('User successfully created.');
     }
 
@@ -37,20 +34,16 @@ class UserController extends Controller
     public function update(UserRequest $request, User $user)
     {
         $hasPassword = $request->get('password');
-
         $request->merge(['password' => Hash::make($request->get('password'))]);
-
         $request->except([$hasPassword ? '' : 'password']);
-
         $user->update($request->all());
 
         return redirect()->route('users.index')->withStatus('User successfully updated.');
     }
 
-    public function destroy(User  $user)
+    public function destroy(User $user)
     {
         $user->delete();
-
         return redirect()->route('users.index')->withStatus('User successfully deleted.');
     }
 }
