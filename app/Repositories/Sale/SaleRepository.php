@@ -85,4 +85,28 @@ class SaleRepository extends AbstractRepository implements SaleRepositoryInterfa
 
         return [];
     }
+
+    public function getSalePeriods()
+    {
+        $sales = $this->model->all();
+        $callback = function (array $date_range) {
+            [ $start_date, $end_date ] = $date_range;
+            $start_date = Carbon::parse($start_date);
+            $end_date = Carbon::parse($end_date);
+
+            return function ($sale) use ($start_date, $end_date) {
+                $created_at = Carbon::parse($sale->created_at);
+                return $created_at->gte($start_date) && $created_at->lte($end_date);
+            };
+        };
+
+        return [
+            'Day' => $sales->filter($callback(get_date_range('today'))),
+            'Yesterday' => $sales->filter($callback(get_date_range('yesterday'))),
+            'Week' => $sales->filter($callback(get_date_range('week'))),
+            'Monthly' => $sales->filter($callback(get_date_range('month'))),
+            'Trimester' => $sales->filter($callback(get_date_range('trimester'))),
+            'Year' => $sales->filter($callback(get_date_range('year'))),
+        ];
+    }
 }

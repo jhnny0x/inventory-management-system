@@ -4,6 +4,7 @@ namespace App\Repositories\Transaction;
 
 use App\Repositories\AbstractRepository;
 use App\Models\Transaction;
+use App\Models\Client;
 use Carbon\Carbon;
 use DB;
 
@@ -11,27 +12,72 @@ class TransactionRepository extends AbstractRepository implements TransactionRep
 {
     protected $model;
 
-    function __construct(Transaction $model)
+    function __construct(Transaction $model, Client $client)
     {
         $this->model = $model;
+        $this->client = $client;
     }
 
     public function create(array $request)
     {
-        $client = $this->model->create($request);
-        return $client;
+        [
+            'client_id' => $client_id,
+            'amount' => $amount,
+            'type' => $type,
+        ]
+            = $request;
+
+        $return_type = 0;
+        if ($client_id) {
+            switch ($type) {
+                case 'income':
+                    $request['title'] = "Payment Received from Customer ID: $client_id";
+                    break;
+                case 'expense':
+                    $request['title'] = "Customer ID Return Payment: $client_id";
+                    if ($amount)
+                        $request['amount'] = (float) $amount * (-1);
+                    break;
+            }
+
+            $this->model->create($request);
+            $client = $this->client->find($client_id);
+            $client->balance += $amount;
+            $client->save();
+            return $return_type = 1;
+        }
+
+        switch ($type) {
+            case 'expense':
+                if ($amount)
+                    $request['amount'] = (float) $amount * (-1);
+                $this->model->create($request);
+                $return_type = 2;
+            case 'payment':
+                if ($amount)
+                    $request['amount'] = (float) $amount * (-1);
+                $this->model->create($request);
+                $return_type = 3;
+                break;
+            case 'income':
+                $this->model->create($request);
+                $return_type = 4;
+                break;
+        }
+
+        return $return_type;
     }
 
     public function update(int $id, array $request)
     {
-        $client = $this->findById($id);
-        $client->update($request);
+        $transaction = $this->findById($id);
+        $transaction->update($request);
     }
 
     public function delete(int $id)
     {
-        $client = $this->findById($id);
-        $client->delete();
+        $transaction = $this->findById($id);
+        $transaction->delete();
     }
 
     public function getMethodBalance()
@@ -136,5 +182,29 @@ class TransactionRepository extends AbstractRepository implements TransactionRep
         return function ($period = 'all') use ($transaction_balance) {
             return $period == 'all' ? $transaction_balance : ($transaction_balance[$period] ?? []);
         };
+    }
+
+    public function getTransactionPeriods()
+    {
+        $transactions = $this->model->all();
+        $callback = function (array $date_range) {
+            [ $start_date, $end_date ] = $date_range;
+            $start_date = Carbon::parse($start_date);
+            $end_date = Carbon::parse($end_date);
+
+            return function ($transaction) use ($start_date, $end_date) {
+                $created_at = Carbon::parse($transaction->created_at);
+                return $created_at->gte($start_date) && $created_at->lte($end_date);
+            };
+        };
+
+        return [
+            'Day' => $transactions->filter($callback(get_date_range('today'))),
+            'Yesterday' => $transactions->filter($callback(get_date_range('yesterday'))),
+            'Week' => $transactions->filter($callback(get_date_range('week'))),
+            'Monthly' => $transactions->filter($callback(get_date_range('month'))),
+            'Trimester' => $transactions->filter($callback(get_date_range('trimester'))),
+            'Year' => $transactions->filter($callback(get_date_range('year'))),
+        ];
     }
 }

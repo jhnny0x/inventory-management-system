@@ -25,19 +25,52 @@ function get_date_range(string $period): array
     Carbon::setWeekStartsAt(Carbon::SUNDAY);
     Carbon::setWeekEndsAt(Carbon::SATURDAY);
 
-    $current_date = Carbon::now();
     $date_range = [];
+    $current_date = Carbon::now();
     switch ($period) {
         case 'daily':
-            $date_range = [$current_date->clone()->startOfDay(), $current_date->clone()->endOfDay()];
+        case 'today':
+            $date_range = [
+                $current_date->clone()->startOfDay(),
+                $current_date->clone()->endOfDay()
+            ];
+            break;
+        case 'yesterday':
+            $date_range = [
+                $current_date->clone()->subDay(1)->startOfDay(),
+                $current_date->clone()->subDay(1)->endOfDay()
+            ];
+            break;
         case 'weekly':
-            $date_range = [$current_date->clone()->startOfWeek(), $current_date->clone()->endOfWeek()];
+        case 'week':
+            $date_range = [
+                $current_date->clone()->startOfWeek(),
+                $current_date->clone()->endOfWeek()
+            ];
+            break;
         case 'monthly':
-            $date_range = [$current_date->clone()->startOfMonth(), $current_date->clone()->endOfMonth()];
+        case 'month':
+            $date_range = [
+                $current_date->clone()->startOfMonth(),
+                $current_date->clone()->endOfMonth()
+            ];
+            break;
         case 'quarterly':
-            $date_range = [$current_date->clone()->startOfQuarter(), $current_date->clone()->endOfQuarter()];
+        case 'quarter':
+        case 'trimester':
+            $date_range = [
+                $current_date->clone()->startOfQuarter(),
+                $current_date->clone()->endOfQuarter()
+            ];
+            break;
         case 'annually':
-            $date_range = [$current_date->clone()->startOfYear(), $current_date->clone()->endOfYear()];
+        case 'annual':
+        case 'year':
+            $date_range = [
+                $current_date->clone()->startOfYear(),
+                $current_date->clone()->endOfYear()
+            ];
+            break;
     }
 
     return $date_range;

@@ -2,174 +2,86 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sale;
-use App\Models\Client;
-use App\Models\Provider;
-use Carbon\Carbon;
-use App\Models\SoldProduct;
-use App\Models\Transaction;
-use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
+
+use App\Repositories\Sale\SaleRepositoryInterface as Sale;
+use App\Repositories\Client\ClientRepositoryInterface as Client;
+use App\Repositories\Provider\ProviderRepositoryInterface as Provider;
+use App\Repositories\SoldProduct\SoldProductRepositoryInterface as SoldProduct;
+use App\Repositories\Transaction\TransactionRepositoryInterface as Transaction;
+use App\Repositories\PaymentMethod\PaymentMethodRepositoryInterface as PaymentMethod;
 
 class TransactionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    function __construct(Sale $sale, Client $client, Provider $provider, SoldProduct $sold_product, Transaction $transaction, PaymentMethod $payment_method)
+    {
+        $this->sale = $sale;
+        $this->client = $client;
+        $this->provider = $provider;
+        $this->sold_product = $sold_product;
+        $this->transaction = $transaction;
+        $this->payment_method = $payment_method;
+    }
+
     public function index()
     {
-        $transactionname = [
-            'income' => 'Income',
-            'payment' => 'Payment',
-            'expense' => 'Expense',
-            'transfer' => 'Transfer'
-        ];
+        $data['transactionname'] = get_transaction_names();
+        $data['transactions'] = $this->transaction->latest()->paginate(25);
 
-        $transactions = Transaction::latest()->paginate(25);
-
-        return view('transactions.index', compact('transactions', 'transactionname'));
+        return view('transactions.index', $data);
     }
 
     public function statistics()
     {
-        Carbon::setWeekStartsAt(Carbon::SUNDAY);
-        Carbon::setWeekEndsAt(Carbon::SATURDAY);
+        $data['salesperiods'] = $this->sale->getSalePeriods();
+        $data['transactionsperiods'] = $this->transaction->getTransactionPeriods();
+        $data['date'] = Carbon::now();
+        $data['methods'] = $this->payment_method->all();
+        $data['clients'] = $this->client->where('balance', '!=', '0.00')->get();
 
-        $salesperiods = [];
-        $transactionsperiods = [];
-
-        $salesperiods['Day'] = Sale::whereBetween('created_at', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->get();
-        $transactionsperiods['Day'] = Transaction::whereBetween('created_at', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->get();
-
-        $salesperiods['Yesterday'] = Sale::whereBetween('created_at', [Carbon::now()->subDay(1)->startOfDay(), Carbon::now()->subDay(1)->endOfDay()])->get();
-        $transactionsperiods['Yesterday'] = Transaction::whereBetween('created_at', [Carbon::now()->subDay(1)->startOfDay(), Carbon::now()->subDay(1)->endOfDay()])->get();
-
-        $salesperiods['Week'] = Sale::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->get();
-        $transactionsperiods['Week'] = Transaction::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->get();
-
-        $salesperiods['Month'] = Sale::whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->get();
-        $transactionsperiods['Month'] = Transaction::whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->get();
-
-        $salesperiods['Trimester'] = Sale::whereBetween('created_at', [Carbon::now()->startOfQuarter(), Carbon::now()->endOfQuarter()])->get();
-        $transactionsperiods['Trimester'] = Transaction::whereBetween('created_at', [Carbon::now()->startOfQuarter(), Carbon::now()->endOfQuarter()])->get();
-
-        $salesperiods['Year'] = Sale::whereYear('created_at', Carbon::now()->year)->get();
-        $transactionsperiods['Year'] = Transaction::whereYear('created_at', Carbon::now()->year)->get();
-
-        return view('transactions.stats', [
-            'clients'               => Client::where('balance', '!=', '0.00')->get(),
-            'salesperiods'          => $salesperiods,
-            'transactionsperiods'   => $transactionsperiods,
-            'date'                  => Carbon::now(),
-            'methods'               => PaymentMethod::all()
-        ]);
+        return view('transactions.stats', $data);
     }
 
     public function type($type)
     {
-        switch ($type) {
-            case 'expense':
-                return view('transactions.expense.index', ['transactions' => Transaction::where('type', 'expense')->latest()->paginate(25)]);
+        $data['transactions'] = $this->transaction->where('type', $type)
+            ->latest()
+            ->paginate(25);
 
-            case 'payment':
-                return view('transactions.payment.index', ['transactions' => Transaction::where('type', 'payment')->latest()->paginate(25)]);
-
-            case 'income':
-                return view('transactions.income.index', ['transactions' => Transaction::where('type', 'income')->latest()->paginate(25)]);
-        }
+        return view("transactions.$type.index", $data);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create($type)
     {
-        switch ($type) {
-            case 'expense':
-                return view('transactions.expense.create', [
-                    'payment_methods' => PaymentMethod::all(),
-                ]);
+        $data['payment_methods'] = $this->payment_method->all();
+        $data['providers'] = $this->provider->all();
 
-            case 'payment':
-                return view('transactions.payment.create', [
-                    'payment_methods' => PaymentMethod::all(),
-                    'providers' => Provider::all(),
-                ]);
-
-            case 'income':
-                return view('transactions.income.create', [
-                    'payment_methods' => PaymentMethod::all(),
-                ]);
-        }
+        return view("transactions.$type.create", $data);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request, Transaction $transaction)
+    public function store(Request $request)
     {
-        if ($request->get('client_id')) {
-            switch ($request->get('type')) {
-                case 'income':
-                    $request->merge(['title' => 'Payment Received from Customer ID: ' . $request->get('client_id')]);
-                    break;
+        $input = $request->all();
+        $return_type = $this->transaction->create($input);
 
-                case 'expense':
-                    $request->merge(['title' => 'Customer ID Return Payment: ' . $request->get('client_id')]);
-
-                    if ($request->get('amount') > 0) {
-                        $request->merge(['amount' => (float) $request->get('amount') * (-1)]);
-                    }
-                    break;
-            }
-
-            $transaction->create($request->all());
-            $client = Client::find($request->get('client_id'));
-            $client->balance += $request->get('amount');
-            $client->save();
-
-            return redirect()
-                ->route('clients.show', $request->get('client_id'))
-                ->withStatus('Successfully registered transaction.');
-        }
-
-        switch ($request->get('type')) {
-            case 'expense':
-                if ($request->get('amount') > 0) {
-                    $request->merge(['amount' => ((float) $request->get('amount') * (-1))]);
-                }
-
-                $transaction->create($request->all());
-
+        switch ($return_type) {
+            case 1:
+                return redirect()
+                    ->route('clients.show', $input['client_id'])
+                    ->withStatus('Successfully registered transaction.');
+            case 2:
                 return redirect()
                     ->route('transactions.type', ['type' => 'expense'])
                     ->withStatus('Expense recorded successfully.');
-
-            case 'payment':
-                if ($request->get('amount') > 0) {
-                    $request->merge(['amount' => ((float) $request->get('amount') * (-1))]);
-                }
-
-                $transaction->create($request->all());
-
+            case 3:
                 return redirect()
                     ->route('transactions.type', ['type' => 'payment'])
                     ->withStatus('Payment registered successfully.');
-
-            case 'income':
-                $transaction->create($request->all());
-
+            case 4:
                 return redirect()
                     ->route('transactions.type', ['type' => 'income'])
                     ->withStatus('Login successfully registered.');
-
             default:
                 return redirect()
                     ->route('transactions.index')
@@ -177,70 +89,33 @@ class TransactionController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Transaction $transaction)
+    public function edit(int $id)
     {
-        switch ($transaction->type) {
-            case 'expense':
-                return view('transactions.expense.edit', [
-                    'transaction' => $transaction,
-                    'payment_methods' => PaymentMethod::all()
-                ]);
+        $data['transaction'] = $transaction = $this->transaction->find($id);
+        $data['payment_methods'] = $this->payment_method->all();
+        $data['providers'] = $this->provider->all();
 
-            case 'payment':
-                return view('transactions.payment.edit', [
-                    'transaction' => $transaction,
-                    'payment_methods' => PaymentMethod::all(),
-                    'providers' => Provider::all()
-                ]);
-
-            case 'income':
-                return view('transactions.income.edit', [
-                    'transaction' => $transaction,
-                    'payment_methods' => PaymentMethod::all(),
-                ]);
-        }
+        return view("transactions.{$transaction->type}.edit", $data);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Transaction $transaction)
+    public function update(Request $request, int $id)
     {
-        $transaction->update($request->all());
+        $input = $request->all();
+        $this->transaction->update($id, $input);
 
-        switch ($request->get('type')) {
+        switch ($input['type']) {
             case 'expense':
-                if ($request->get('amount') > 0) {
-                    $request->merge(['amount' => ((float) $request->get('amount') * (-1))]);
-                }
                 return redirect()
                     ->route('transactions.type', ['type' => 'expense'])
                     ->withStatus('Expense updated sucessfully.');
-
             case 'payment':
-                if ($request->get('amount') > 0) {
-                    $request->merge(['amount' => ((float) $request->get('amount') * (-1))]);
-                }
-
                 return redirect()
                     ->route('transactions.type', ['type' => 'payment'])
                     ->withStatus('Payment updated satisfactorily.');
-
             case 'income':
                 return redirect()
                     ->route('transactions.type', ['type' => 'income'])
                     ->withStatus('Login successfully updated.');
-
             default:
                 return redirect()
                     ->route('transactions.index')
@@ -248,38 +123,29 @@ class TransactionController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Transaction $transaction)
+    public function destroy(int $id)
     {
-        //if ($transaction->sale)
-        //{
-        //    return back()->withStatus('You cannot remove a transaction from a completed sale. You can delete the sale and its entire record.');
-        //}
-
+        $transaction = $this->transaction->find($id);
         if ($transaction->transfer) {
             return back()->withStatus('You cannot remove a transaction from a transfer. You must delete the transfer to delete its records.');
         }
 
-        $type = $transaction->type;
+        $transaction_type = $transaction->type;
         $transaction->delete();
 
-        switch ($type) {
+        $message_status = 'Transaction deleted successfully.';
+        switch ($transaction_type) {
             case 'expense':
-                return back()->withStatus('Expenditure successfully removed.');
-
+                $message_status = 'Expenditure successfully removed.';
+                break;
             case 'payment':
-                return back()->withStatus('Payment successfully removed.');
-
+                $message_status = 'Payment successfully removed.';
+                break;
             case 'income':
-                return back()->withStatus('Entry successfully removed.');
-
-            default:
-                return back()->withStatus('Transaction deleted successfully.');
+                $message_status = 'Entry successfully removed.';
+                break;
         }
+
+        return back()->withStatus($message_status);
     }
 }
